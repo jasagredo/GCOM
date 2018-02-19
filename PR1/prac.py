@@ -61,3 +61,4 @@ class Practica1:
 # # #Clases de los datos
 # t = np.array([[1,1,1,1,1,0,0,0,0,0],
 #               [0,0,0,0,0,1,1,1,1,1]])
+
