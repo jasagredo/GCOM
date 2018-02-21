@@ -11,10 +11,10 @@ class LeastSquares(object):
         self.w_tilde = None
 
     def train(self, X, t):
-        x_vir = np.vstack([np.ones_like(X[0]), X])
+        x_tilde = np.vstack([np.ones_like(X[0]), X])
 
-        A = np.dot(x_vir, x_vir.T)
-        b = np.dot(x_vir, t.T)
+        A = np.dot(x_tilde, x_tilde.T)
+        b = np.dot(x_tilde, t.T)
 
         self.w_tilde = np.linalg.solve(A, b)
 
@@ -36,17 +36,19 @@ class LDA(object):
         # Generacion del vector de medias
         mi_arr = []
         for i in range(0, t.shape[0]):
-            mi_arr.append(np.mean(X[:, t[i] == 1], axis=1))
+            media_i = np.mean(X[:, t[i] == 1], axis=1)
+            mi_arr.append(media_i)
         mean = np.vstack(mi_arr)
 
         # Generacion de x_cent
         mi_arr = []
         for i in range(0, t.shape[0]):
-            mi_arr.append(X[:, t[i] == 1].T - mean[i])
-        x_cent = np.vstack(mi_arr)
+            x_i_m_i = X[:, t[i] == 1].T - mean[i]
+            mi_arr.append(x_i_m_i)
+        x_cent = np.vstack(mi_arr).T
 
         # Definicion de s_w
-        s_w = x_cent.T.dot(x_cent)
+        s_w = x_cent.dot(x_cent.T)
 
         b = mean[0] - mean[1]
 
@@ -58,7 +60,6 @@ class LDA(object):
             print("No has entrenado el metodo")
         else:
             return (self.w[1:].T.dot(x) + self.w[0]).argmax(axis=0)
-
 
 
 if __name__ == '__main__':

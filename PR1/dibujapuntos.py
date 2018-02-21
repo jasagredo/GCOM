@@ -16,10 +16,6 @@ class CreatePoints(object):
          fig: matplotlib figure
          ax: matplotlib axes
     """
-
-    def redraw(self):
-        self.circle_list = []
-        self.fig.canvas.draw()
     
     def __init__(self, fig, ax, axb1, axb2, axb3):
         self.circle_list = []
@@ -63,6 +59,7 @@ class CreatePoints(object):
         if event.inaxes == self.axb1:
             print("ls")
             return
+
         if event.inaxes == self.axb2:
             print("lda")
             return
