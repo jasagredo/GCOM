@@ -17,8 +17,12 @@ class CreatePoints(object):
          ax: matplotlib axes
     """
     
-    def __init__(self, fig, ax, axb1, axb2, axb3):
+    def __init__(self, fig, ax, axb1, axb2, axb3, axb4):
         self.circle_list = []
+        self.clases_list = np.array([])
+        self.conteo_clase_max = 0
+        self.clase_max = 0
+        self.clase_actual = -1
 
         self.x0 = None
         self.y0 = None
@@ -39,9 +43,12 @@ class CreatePoints(object):
         self.axb1 = axb1
         self.axb2 = axb2
         self.axb3 = axb3
+        self.axb4 = axb4
         Button(self.axb1, 'Least Squares')
         Button(self.axb2, 'LDA')
-        self.bclases = Button(self.axb3, '0')
+        self.bclasess = Button(self.axb3, 'Clase +')
+        self.bclasesb = Button(self.axb4, 'Clase -')
+        self.ax.set_title('Introduciendo puntos para la clase 0')
 
     def on_press(self, event):
         if event.button == 3:
@@ -54,6 +61,29 @@ class CreatePoints(object):
             return points
 
         if event.inaxes == self.axb3:
+            if self.clase_actual == self.clase_max and self.conteo_clase_max > 0:
+                self.clase_actual += 1
+                self.ax.set_title('Introduciendo puntos para la clase {0}'.format(self.clase_actual))
+                if np.ndim(self.clases_list) == 1:
+                    self.clases_list = np.vstack([self.clases_list, np.zeros_like(self.clases_list)])
+                elif self.clases_list.shape[0] <= self.clase_actual:
+                    self.clases_list = np.vstack([self.clases_list, np.zeros_like(self.clases_list[0])])
+                self.fig.canvas.draw()
+                self.clase_max = self.clase_actual
+                self.conteo_clase_max = 0
+            elif self.conteo_clase_max > 0:
+                self.clase_actual += 1
+            else:
+                print("No has introducido nada para la clase mas alta")
+            return
+
+        if event.inaxes == self.axb4:
+            if self.clase_actual > 0:
+                self.clase_actual -= 1
+                self.ax.set_title('Introduciendo puntos para la clase {0}'.format(self.clase_actual))
+                self.fig.canvas.draw()
+            else:
+                print("No existen clases negativas")
             return
 
         if event.inaxes == self.axb1:
@@ -76,6 +106,20 @@ class CreatePoints(object):
         c = Circle((x0, y0), 0.5)
         self.ax.add_patch(c)
         self.circle_list.append(c)
+
+        if self.clase_actual == -1:
+            self.clases_list = np.array([1])
+            self.clase_actual = 0
+        elif self.clase_actual == 0 and self.clase_max == 0:
+            self.clases_list = np.hstack(([self.clases_list, 1]))
+        else:
+            vec_can = np.zeros(self.clase_actual + 1)
+            vec_can[self.clase_actual] = 1
+
+            self.clases_list = np.hstack([self.clases_list, vec_can.reshape(self.clase_actual+1, 1)])
+        if self.clase_actual == self.clase_max:
+            self.conteo_clase_max += 1
+
         self.current_circle = None
         self.fig.canvas.draw()
 
@@ -105,6 +149,7 @@ if __name__ == '__main__':
     axb1 = plt.axes([0.6, 0.05, 0.2, 0.075])
     axb2 = plt.axes([0.81, 0.05, 0.1, 0.075])
     axb3 = plt.axes([0.1, 0.05, 0.1, 0.075])
+    axb4 = plt.axes([0.21, 0.05, 0.1, 0.075])
     
-    start = CreatePoints(fig, ax, axb1, axb2, axb3)
+    start = CreatePoints(fig, ax, axb1, axb2, axb3, axb4)
     plt.show()
