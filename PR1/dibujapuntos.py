@@ -19,11 +19,12 @@ class CreatePoints(object):
     
     def __init__(self, fig, ax, axb1, axb2, axb3, axb4):
         self.circle_list = []
-        self.clases_list = np.array([])
+        self.t = np.array([])
         self.conteo_clase_max = 0
         self.clase_max = 0
         self.clase_actual = -1
 
+        self.metodo = None
         self.x0 = None
         self.y0 = None
 
@@ -63,16 +64,19 @@ class CreatePoints(object):
         if event.inaxes == self.axb3:
             if self.clase_actual == self.clase_max and self.conteo_clase_max > 0:
                 self.clase_actual += 1
-                self.ax.set_title('Introduciendo puntos para la clase {0}'.format(self.clase_actual))
-                if np.ndim(self.clases_list) == 1:
-                    self.clases_list = np.vstack([self.clases_list, np.zeros_like(self.clases_list)])
-                elif self.clases_list.shape[0] <= self.clase_actual:
-                    self.clases_list = np.vstack([self.clases_list, np.zeros_like(self.clases_list[0])])
-                self.fig.canvas.draw()
                 self.clase_max = self.clase_actual
                 self.conteo_clase_max = 0
-            elif self.conteo_clase_max > 0:
+                self.ax.set_title('Introduciendo puntos para la clase {0}'.format(self.clase_actual))
+                if np.ndim(self.t) == 1:
+                    self.t = np.vstack([self.t, np.zeros_like(self.t)])
+                elif self.t.shape[0] <= self.clase_actual:
+                    self.t = np.vstack([self.t, np.zeros_like(self.t[0])])
+                self.fig.canvas.draw()
+
+            elif self.clase_actual < self.clase_max:
                 self.clase_actual += 1
+                self.ax.set_title('Introduciendo puntos para la clase {0}'.format(self.clase_actual))
+                self.fig.canvas.draw()
             else:
                 print("No has introducido nada para la clase mas alta")
             return
@@ -87,11 +91,17 @@ class CreatePoints(object):
             return
 
         if event.inaxes == self.axb1:
-            print("ls")
+            X = np.array(self.circle_list).T  # TODO
+            self.metodo = LeastSquares()
+            print(self.metodo.train(X, self.t))
+            # Generar matriz de puntos, llamar a classify de self.metodo y pintarlo
             return
 
         if event.inaxes == self.axb2:
-            print("lda")
+            X = np.array(self.circle_list).T  # TODO
+            self.metodo = LDA()
+            print(self.metodo.train(X, self.t))
+            # Generar matriz de puntos, llamar a classify de self.metodo y pintarlo
             return
 
         x0, y0 = event.xdata, event.ydata
@@ -108,15 +118,14 @@ class CreatePoints(object):
         self.circle_list.append(c)
 
         if self.clase_actual == -1:
-            self.clases_list = np.array([1])
+            self.t = np.array([1])
             self.clase_actual = 0
         elif self.clase_actual == 0 and self.clase_max == 0:
-            self.clases_list = np.hstack(([self.clases_list, 1]))
+            self.t = np.hstack(([self.t, 1]))
         else:
-            vec_can = np.zeros(self.clase_actual + 1)
+            vec_can = np.zeros(self.clase_max + 1)
             vec_can[self.clase_actual] = 1
-
-            self.clases_list = np.hstack([self.clases_list, vec_can.reshape(self.clase_actual+1, 1)])
+            self.t = np.hstack([self.t, vec_can.reshape(vec_can.shape[0], 1)])
         if self.clase_actual == self.clase_max:
             self.conteo_clase_max += 1
 
@@ -124,6 +133,10 @@ class CreatePoints(object):
         self.fig.canvas.draw()
 
     def on_release(self, event):
+        if self.metodo is not None:
+            X = np.array(self.circle_list).T  # TODO
+            print(self.metodo.train(X, self.t))
+            # Generar matriz de puntos, llamar a classify de self.metodo y pintarlo
         self.press_event = None
         self.current_circle = None
 
