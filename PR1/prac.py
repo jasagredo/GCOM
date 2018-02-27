@@ -11,8 +11,6 @@ class LeastSquares(object):
         self.w_tilde = None
 
     def train(self, X, t):
-        print(X)
-        print(np.ones_like(X[0]))
         x_tilde = np.vstack([np.ones_like(X[0]), X])
 
         A = np.dot(x_tilde, x_tilde.T)
