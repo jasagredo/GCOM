@@ -19,10 +19,11 @@ class CreatePoints(object):
     
     def __init__(self, fig, ax, axb1, axb2, axb3, axb4):
         self.circle_list = []
+        self.x = []
         self.t = np.array([])
         self.conteo_clase_max = 0
         self.clase_max = 0
-        self.clase_actual = -1
+        self.clase_actual = 0
 
         self.metodo = None
         self.x0 = None
@@ -30,6 +31,8 @@ class CreatePoints(object):
 
         self.fig = fig
         self.ax = ax
+
+        self.fondo = np.mgrid[-20:20:0.5, -20:20:0.5]
         
         self.cidpress = fig.canvas.mpl_connect(
             'button_press_event', self.on_press)
@@ -40,6 +43,7 @@ class CreatePoints(object):
 
         self.press_event = None
         self.current_circle = None
+        self.current_x = None
 
         self.axb1 = axb1
         self.axb2 = axb2
@@ -91,17 +95,17 @@ class CreatePoints(object):
             return
 
         if event.inaxes == self.axb1:
-            X = np.array(self.circle_list).T  # TODO
+            X = np.array(self.x).T
             self.metodo = LeastSquares()
             print(self.metodo.train(X, self.t))
-            # Generar matriz de puntos, llamar a classify de self.metodo y pintarlo
+            # TODO: Generar matriz de puntos, llamar a classify de self.metodo y pintarlo
             return
 
         if event.inaxes == self.axb2:
-            X = np.array(self.circle_list).T  # TODO
+            X = np.array(self.x).T
             self.metodo = LDA()
             print(self.metodo.train(X, self.t))
-            # Generar matriz de puntos, llamar a classify de self.metodo y pintarlo
+            # TODO: Generar matriz de puntos, llamar a classify de self.metodo y pintarlo
             return
 
         x0, y0 = event.xdata, event.ydata
@@ -111,16 +115,15 @@ class CreatePoints(object):
                 self.press_event = event
                 self.current_circle = circle
                 self.x0, self.y0 = self.current_circle.center
+                self.current_x = self.x.index(self.current_circle.center)
                 return
 
-        c = Circle((x0, y0), 0.5)
+        c = Circle((x0, y0), 0.5, color='C{0}'.format(self.clase_actual))
         self.ax.add_patch(c)
         self.circle_list.append(c)
+        self.x.append((x0, y0))
 
-        if self.clase_actual == -1:
-            self.t = np.array([1])
-            self.clase_actual = 0
-        elif self.clase_actual == 0 and self.clase_max == 0:
+        if self.clase_actual == 0 and self.clase_max == 0:
             self.t = np.hstack(([self.t, 1]))
         else:
             vec_can = np.zeros(self.clase_max + 1)
@@ -133,10 +136,14 @@ class CreatePoints(object):
         self.fig.canvas.draw()
 
     def on_release(self, event):
-        if self.metodo is not None:
-            X = np.array(self.circle_list).T  # TODO
+        if self.current_circle is not None:
+            x0, y0 = event.xdata, event.ydata
+            self.x[self.current_x] = (x0, y0)
+        if self.metodo is not None and self.current_circle is not None:
+            X = np.array(self.x).T
             print(self.metodo.train(X, self.t))
-            # Generar matriz de puntos, llamar a classify de self.metodo y pintarlo
+            # TODO: Generar matriz de puntos, llamar a classify de self.metodo y pintarlo
+        self.current_x = None
         self.press_event = None
         self.current_circle = None
 

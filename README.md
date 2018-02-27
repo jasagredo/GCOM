@@ -7,6 +7,10 @@ Machine Learning and Pattern Recognition algorithms
 - [x] encapsulate in classes.
 - [x] create graphic interface.
 - [x] create buttons for methods.
-- [ ] create buttons for choosing classes.
-- [ ] connect buttons with algorithms.
-- [ ] dynamic recalculation.
+- [x] create buttons for choosing classes.
+- [x] change colors with classes.
+- [x] connect buttons with algorithms.
+- [ ] draw hyperplanes.
+- [ ] colorize background.
+- [x] dynamic recalculation.
+- [ ] dynamic drawing.
