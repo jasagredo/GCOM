@@ -24,7 +24,10 @@ class LeastSquares(object):
         if self.w_tilde is None:
             print("No has entrenado el metodo")
         else:
-            x_tilde = np.vstack([np.ones_like(x[0]),x])
+            if np.ndim(x) == 1:
+                x_tilde = np.hstack([1, x])
+            else:
+                x_tilde = np.vstack([np.ones_like(x[0]),x])
             return (self.w_tilde.T.dot(x_tilde)).argmax(axis=0)
 
 
@@ -56,11 +59,11 @@ class LDA(object):
         self.w = np.linalg.solve(s_w, b)
         return self.w
 
-    def classify(self, x):
+    def classify(self, x): #Habra que definir un C tal que si y(x) > C entonces sea una clase y en caso contrario sea la otra. Como? buena pregunta.
         if self.w is None:
             print("No has entrenado el metodo")
         else:
-            return (self.w.T.dot(x))        #TODO: esto hace caput. algo así debe de ser, unos son + y otros -
+            return (self.w.T.dot(x))
 
 
 if __name__ == '__main__':
