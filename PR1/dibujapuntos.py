@@ -99,6 +99,9 @@ class CreatePoints(object):
             self.metodo = LeastSquares()
             print(self.metodo.train(X, self.t))
             # TODO: Generar matriz de puntos, llamar a classify de self.metodo y pintarlo
+            fondo = np.mgrid[-20:20,-20:20].reshape(2,1600)     # TODO: considerar fondo y clasefondo como atributos de self?
+            clase_fondo = self.metodo.classify(fondo)
+            print(clase_fondo)
             return
 
         if event.inaxes == self.axb2:
@@ -106,6 +109,9 @@ class CreatePoints(object):
             self.metodo = LDA()
             print(self.metodo.train(X, self.t))
             # TODO: Generar matriz de puntos, llamar a classify de self.metodo y pintarlo
+            fondo = np.mgrid[-20:20,-20:20].reshape(2,1600)     # TODO: considerar fondo y clasefondo como atributos de self?
+            clase_fondo = self.metodo.classify(fondo)
+            print(clase_fondo)
             return
 
         x0, y0 = event.xdata, event.ydata
@@ -142,7 +148,7 @@ class CreatePoints(object):
         if self.metodo is not None and self.current_circle is not None:
             X = np.array(self.x).T
             print(self.metodo.train(X, self.t))
-            # TODO: Generar matriz de puntos, llamar a classify de self.metodo y pintarlo
+            # TODO : Generar matriz de puntos, llamar a classify de self.metodo y pintarlo
         self.current_x = None
         self.press_event = None
         self.current_circle = None

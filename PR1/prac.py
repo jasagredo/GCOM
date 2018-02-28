@@ -24,7 +24,8 @@ class LeastSquares(object):
         if self.w_tilde is None:
             print("No has entrenado el metodo")
         else:
-            return (self.w_tilde[1:].T.dot(x) + self.w_tilde[0]).argmax(axis=0)
+            x_tilde = np.vstack([np.ones_like(x[0]),x])
+            return (self.w_tilde.T.dot(x_tilde)).argmax(axis=0)
 
 
 class LDA(object):
@@ -59,7 +60,7 @@ class LDA(object):
         if self.w is None:
             print("No has entrenado el metodo")
         else:
-            return (self.w[1:].T.dot(x) + self.w[0]).argmax(axis=0)
+            return (self.w.T.dot(x))        #TODO: esto hace caput. algo así debe de ser, unos son + y otros -
 
 
 if __name__ == '__main__':

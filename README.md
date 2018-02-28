@@ -11,6 +11,9 @@ Machine Learning and Pattern Recognition algorithms
 - [x] change colors with classes.
 - [x] connect buttons with algorithms.
 - [ ] draw hyperplanes.
+- [x] get background classes.
 - [ ] colorize background.
 - [x] dynamic recalculation.
 - [ ] dynamic drawing.
+
+- [ ] bug detected: moving a point outside the board doesn't allow releasing it unless you click again outside the board.
