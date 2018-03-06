@@ -32,7 +32,7 @@ class CreatePoints(object):
         self.fig = fig
         self.ax = ax
 
-        self.fondo = np.mgrid[-20:20,-20:20].reshape(2, 1600)
+        self.fondo = np.mgrid[-20:20:0.5,-20:20:0.5].reshape(2, 6400)
         
         self.cidpress = fig.canvas.mpl_connect(
             'button_press_event', self.on_press)
@@ -55,6 +55,14 @@ class CreatePoints(object):
         self.bclasess = Button(self.axb3, 'Clase +')
         self.bclasesb = Button(self.axb4, 'Clase -')
         self.ax.set_title('Introduciendo puntos para la clase 0')
+
+    def colorize_bg(self):
+        if self.scat_rem is not None:
+            self.scat_rem.remove()
+            self.scat_rem = None
+        clase_fondo = map((lambda x: 'C' + str(x)), self.metodo.classify(self.fondo))
+        self.scat_rem = self.ax.scatter(self.fondo[0], self.fondo[1], color=clase_fondo, alpha=0.2, s=5)
+        self.fig.canvas.draw()
 
     def on_press(self, event):
         if event.button == 3:
@@ -100,12 +108,7 @@ class CreatePoints(object):
                 X = np.array(self.x).T
                 self.metodo = LeastSquares()
                 print(self.metodo.train(X, self.t))
-                if self.scat_rem is not None:
-                    self.scat_rem.remove()
-                    self.scat_rem = None
-                clase_fondo = map((lambda x: 'C'+str(x)), self.metodo.classify(self.fondo))
-                self.scat_rem = self.ax.scatter(self.fondo[0], self.fondo[1], color=clase_fondo, alpha=0.2)
-                self.fig.canvas.draw()
+                self.colorize_bg()
 
             else:
                 print("Como vas a clasificar si solo tienes una clase, Sherlock")
@@ -148,13 +151,12 @@ class CreatePoints(object):
 
     def on_release(self, event):
         if self.current_circle is not None:
-            x0, y0 = event.xdata, event.ydata
-            self.x[self.current_x] = (x0, y0)
+            x, y = self.x[self.current_x]
+            self.x[self.current_x] = (x + (event.xdata - self.press_event.xdata), y + (event.xdata - self.press_event.xdata))
         if self.metodo is not None and self.current_circle is not None:
             X = np.array(self.x).T
             print(self.metodo.train(X, self.t))
-            # Dependiendo del metodo habra que llamar a un pintar o a otro
-
+            self.colorize_bg()
         self.current_x = None
         self.press_event = None
         self.current_circle = None
@@ -169,21 +171,6 @@ class CreatePoints(object):
         dy = event.ydata - self.press_event.ydata
         self.current_circle.center = self.x0 + dx, self.y0 + dy
         self.fig.canvas.draw()
-
-    def draw_line(self, eqn, cnt, clases):
-        clase = self.metodo.classify(np.array([20, (eqn[1] * 20 - eqn[0]) / -eqn[2]]))
-        if clase == clases[0] or clase == clases[1]:
-            x = np.arange(cnt[0], 20, 0.25)
-        else:
-            x = np.arange(-20, cnt[0], 0.25)
-        rec = (eqn[1] * x - eqn[0]) / -eqn[2]
-        self.rectas_a_borrar += 1
-        self.ax.plot(x, rec)
-
-    def borrar_rectas(self):
-        for i in range(self.rectas_a_borrar):
-            self.ax.lines.pop(0)
-        self.rectas_a_borrar = 0
 
 if __name__ == '__main__':
 
