@@ -25,8 +25,6 @@ class CreatePoints(object):
         self.clase_max = 0
         self.clase_actual = 0
 
-        self.rectas_a_borrar = 0
-
         self.metodo = None
         self.x0 = None
         self.y0 = None
@@ -46,6 +44,7 @@ class CreatePoints(object):
         self.press_event = None
         self.current_circle = None
         self.current_x = None
+        self.scat_rem = None
 
         self.axb1 = axb1
         self.axb2 = axb2
@@ -98,33 +97,16 @@ class CreatePoints(object):
 
         elif event.inaxes == self.axb1:
             if self.clase_max > 0:
-                if self.rectas_a_borrar > 0:
-                    self.borrar_rectas()
                 X = np.array(self.x).T
                 self.metodo = LeastSquares()
                 print(self.metodo.train(X, self.t))
-                if self.clase_max == 1:
-                    wt = self.metodo.w_tilde.T
-                    rec = wt[0] - wt[1]
-                    x = np.arange(-20, 20)
-                    y = (rec[1]*x - rec[0])/-rec[2]
-                    self.ax.plot(x, y)
-                    self.rectas_a_borrar += 1
-                    self.fig.canvas.draw()
-                elif self.clase_max >= 2:
-                    wt = self.metodo.w_tilde.T
-                    rec1 = wt[0] - wt[1]
-                    rec2 = wt[0] - wt[2]
-                    sis = np.vstack([rec1, rec2])
-                    centro = np.linalg.solve(sis[:, 1:], sis[:, 0])
-                    for i in range(0, self.clase_max+1):
-                        for j in range(i+1, self.clase_max+1):
-                            rec = wt[i] - wt[j]
-                            self.draw_line(rec, centro, (i, j))
-                    self.fig.canvas.draw()
+                if self.scat_rem is not None:
+                    self.scat_rem.remove()
+                    self.scat_rem = None
+                clase_fondo = map((lambda x: 'C'+str(x)), self.metodo.classify(self.fondo))
+                self.scat_rem = self.ax.scatter(self.fondo[0], self.fondo[1], color=clase_fondo, alpha=0.2)
+                self.fig.canvas.draw()
 
-                clase_fondo = self.metodo.classify(self.fondo)
-                print(clase_fondo)
             else:
                 print("Como vas a clasificar si solo tienes una clase, Sherlock")
             return
