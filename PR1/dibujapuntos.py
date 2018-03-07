@@ -42,7 +42,7 @@ class CreatePoints(object):
         self.press_event = None
         self.current_circle = None
         self.scat_rem = None
-        self.rec_lda = None
+        self.rec_lda = False
 
         self.axb1 = axb1
         Button(self.axb1, 'Least Squares')
@@ -59,13 +59,13 @@ class CreatePoints(object):
         if self.scat_rem is not None:
             self.scat_rem.remove()
             self.scat_rem = None
-        if self.rec_lda is not None:
-            self.rec_lda.remove()
-            self.rec_lda = None
+        if self.rec_lda:
+            self.ax.lines.pop(0)
+            self.rec_lda = False
         if self.metodo is not None and type(self.metodo) is LDA:
             x = np.arange(-20, 21, 10)
-            y = self.metodo.w[0]*x/-self.metodo.w[1]
-            self.rec_lda = self.ax.plot(x, y)
+            y = self.metodo.w[1]*x/self.metodo.w[0]  # TODO: ver por que demonios la recta es esta
+            self.rec_lda = True
 
         clase_fondo = map((lambda x: 'C' + str(x)), self.metodo.classify(self.fondo))
         self.scat_rem = self.ax.scatter(self.fondo[0], self.fondo[1], color=clase_fondo, alpha=0.2, s=5)
@@ -132,8 +132,8 @@ class CreatePoints(object):
         elif event.inaxes == self.axb2:         # Pulsar en LDA
             x = self.parsea_circulos()
             self.metodo = LDA()
-            self.metodo.train(x, self.t)
-            self.metodo.get_root(x, self.t)
+            self.metodo.train(x, self.t)     # Esto parece que funciona guay
+            self.metodo.get_root(x, self.t)  # Quiza habria que meter el get_root dentro de train
             self.colorize_bg()
             return
 
