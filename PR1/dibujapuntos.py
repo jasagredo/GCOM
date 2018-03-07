@@ -19,7 +19,6 @@ class CreatePoints(object):
     
     def __init__(self, fig, ax, axb1, axb2, axb3, axb4):
         self.circle_list = []
-        self.x = []
         self.t = np.array([])
         self.conteo_clase_max = 0
         self.clase_max = 0
@@ -32,7 +31,7 @@ class CreatePoints(object):
         self.fig = fig
         self.ax = ax
 
-        self.fondo = np.mgrid[-20:20:0.5,-20:20:0.5].reshape(2, 6400)
+        self.fondo = np.mgrid[-20:20:0.5, -20:20:0.5].reshape(2, 6400)
         
         self.cidpress = fig.canvas.mpl_connect(
             'button_press_event', self.on_press)
@@ -43,7 +42,6 @@ class CreatePoints(object):
 
         self.press_event = None
         self.current_circle = None
-        self.current_x = None
         self.scat_rem = None
 
         self.axb1 = axb1
@@ -105,7 +103,10 @@ class CreatePoints(object):
 
         elif event.inaxes == self.axb1:
             if self.clase_max > 0:
-                X = np.array(self.x).T
+                x = []
+                for circle in self.circle_list:
+                    x.append(circle.center)
+                X = np.array(x).T
                 self.metodo = LeastSquares()
                 print(self.metodo.train(X, self.t))
                 self.colorize_bg()
@@ -129,13 +130,11 @@ class CreatePoints(object):
                     self.press_event = event
                     self.current_circle = circle
                     self.x0, self.y0 = self.current_circle.center
-                    self.current_x = self.x.index(self.current_circle.center)
                     return
 
             c = Circle((x0, y0), 0.5, color='C{0}'.format(self.clase_actual))
             self.ax.add_patch(c)
             self.circle_list.append(c)
-            self.x.append((x0, y0))
 
             if self.clase_actual == 0 and self.clase_max == 0:
                 self.t = np.hstack(([self.t, 1]))
@@ -150,14 +149,13 @@ class CreatePoints(object):
             self.fig.canvas.draw()
 
     def on_release(self, event):
-        if self.current_circle is not None:
-            x, y = self.x[self.current_x]
-            self.x[self.current_x] = (x + (event.xdata - self.press_event.xdata), y + (event.xdata - self.press_event.xdata))
         if self.metodo is not None and self.current_circle is not None:
-            X = np.array(self.x).T
+            x = []
+            for circle in self.circle_list:
+                x.append(circle.center)
+            X = np.array(x).T
             print(self.metodo.train(X, self.t))
             self.colorize_bg()
-        self.current_x = None
         self.press_event = None
         self.current_circle = None
 
