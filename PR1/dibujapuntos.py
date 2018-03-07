@@ -42,6 +42,7 @@ class CreatePoints(object):
         self.press_event = None
         self.current_circle = None
         self.scat_rem = None
+        self.rec_lda = None
 
         self.axb1 = axb1
         Button(self.axb1, 'Least Squares')
@@ -58,6 +59,14 @@ class CreatePoints(object):
         if self.scat_rem is not None:
             self.scat_rem.remove()
             self.scat_rem = None
+        if self.rec_lda is not None:
+            self.rec_lda.remove()
+            self.rec_lda = None
+        if self.metodo is not None and type(self.metodo) is LDA:
+            x = np.arange(-20, 21, 10)
+            y = self.metodo.w[0]*x/-self.metodo.w[1]
+            self.rec_lda = self.ax.plot(x, y)
+
         clase_fondo = map((lambda x: 'C' + str(x)), self.metodo.classify(self.fondo))
         self.scat_rem = self.ax.scatter(self.fondo[0], self.fondo[1], color=clase_fondo, alpha=0.2, s=5)
         self.fig.canvas.draw()
@@ -123,8 +132,9 @@ class CreatePoints(object):
         elif event.inaxes == self.axb2:         # Pulsar en LDA
             x = self.parsea_circulos()
             self.metodo = LDA()
-            print(self.metodo.train(x, self.t))
-            # por ahora no podemos clasificar
+            self.metodo.train(x, self.t)
+            self.metodo.get_root(x, self.t)
+            self.colorize_bg()
             return
 
         else:                                   # Pulsar dentro del grafico
