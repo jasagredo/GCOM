@@ -59,7 +59,7 @@ class LDA(object):
         self.w = np.linalg.solve(s_w, b)
         return self.w
 
-    def classify(self, x): #Habra que definir un C tal que si y(x) > C entonces sea una clase y en caso contrario sea la otra. Como? buena pregunta.
+    def classify(self, x): # Habra que definir un C tal que si y(x) > C entonces sea una clase y en caso contrario sea la otra. Como? buena pregunta.
         if self.w is None:
             print("No has entrenado el metodo")
         else:
