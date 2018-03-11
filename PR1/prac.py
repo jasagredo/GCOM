@@ -66,12 +66,12 @@ class LDA(object):
         sigs = []
         for i in range(0, t.shape[0]):
             elems = X[:, t[i] == 1]
-            medias.append(self.w.T.dot(np.mean(elems, axis=1)))
+            medias.append(np.mean(self.w.T.dot(elems)))
 
             probs_i = elems.shape[1]/X.shape[1]
             probs.append(probs_i)
 
-            sigs.append(np.var(elems))
+            sigs.append(np.var(self.w.T.dot(elems)))
 
         mean = np.vstack(medias)
         prob = np.vstack(probs)

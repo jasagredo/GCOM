@@ -60,7 +60,7 @@ class CreatePoints(object):
             self.scat_rem.remove()
             self.scat_rem = None
         if self.rec_lda:
-            self.ax.lines.pop(0)
+           # self.ax.lines.pop(0)       esta linea peta, en ningun momento tocamos ax.lines
             self.rec_lda = False
         if self.metodo is not None and type(self.metodo) is LDA:
             x = np.arange(-20, 21, 10)
@@ -96,10 +96,6 @@ class CreatePoints(object):
                 self.clase_actual += 1
                 self.clase_max = self.clase_actual
                 self.conteo_clase_max = 0
-                if np.ndim(self.t) == 1:
-                    self.t = np.vstack([self.t, np.zeros_like(self.t)])
-                elif self.t.shape[0] <= self.clase_actual:
-                    self.t = np.vstack([self.t, np.zeros_like(self.t[0])])
                 self.actualiza_titulo()
 
             elif self.clase_actual < self.clase_max:
@@ -119,7 +115,7 @@ class CreatePoints(object):
             return
 
         elif event.inaxes == self.axb1:         # Pulsar en Least Squares
-            if self.clase_max > 0:
+            if self.clase_max > 0 and not (self.clase_max == 1 and self.conteo_clase_max == 0):
                 x = self.parsea_circulos()
                 self.metodo = LeastSquares()
                 print(self.metodo.train(x, self.t))
@@ -130,11 +126,15 @@ class CreatePoints(object):
             return
 
         elif event.inaxes == self.axb2:         # Pulsar en LDA
-            x = self.parsea_circulos()
-            self.metodo = LDA()
-            self.metodo.train(x, self.t)     # Esto parece que funciona guay
-            self.metodo.get_root(x, self.t)  # Quiza habria que meter el get_root dentro de train
-            self.colorize_bg()
+            if (self.clase_max == 1 and self.conteo_clase_max > 0) or\
+                    (self.clase_max == 2 and self.conteo_clase_max == 0):
+                x = self.parsea_circulos()
+                self.metodo = LDA()
+                self.metodo.train(x, self.t)     # Esto parece que funciona guay
+                self.metodo.get_root(x, self.t)  # Quiza habria que meter el get_root dentro de train
+                self.colorize_bg()
+            else:
+                print("No tenemos solo dos clases para LDA")
             return
 
         else:                                   # Pulsar dentro del grafico
@@ -154,6 +154,11 @@ class CreatePoints(object):
             if self.clase_actual == 0 and self.clase_max == 0:
                 self.t = np.hstack(([self.t, 1]))
             else:
+                if np.ndim(self.t) == 1:
+                    self.t = np.vstack([self.t, np.zeros_like(self.t)])
+                if self.clase_actual == self.clase_max and self.conteo_clase_max == 0:
+                    if self.t.shape[0] <= self.clase_actual:
+                        self.t = np.vstack([self.t, np.zeros_like(self.t[0])])
                 vec_can = np.zeros(self.clase_max + 1)
                 vec_can[self.clase_actual] = 1
                 self.t = np.hstack([self.t, vec_can.reshape(vec_can.shape[0], 1)])
@@ -164,6 +169,7 @@ class CreatePoints(object):
             self.fig.canvas.draw()
 
     def on_release(self, event):
+        # A lo mejor hay que meter aqui que el evento sea dentro de la figura para evitar el bug del readme
         if self.metodo is not None and self.current_circle is not None:
             x = self.parsea_circulos()
             print(self.metodo.train(x, self.t))
