@@ -60,11 +60,12 @@ class CreatePoints(object):
             self.scat_rem.remove()
             self.scat_rem = None
         if self.rec_lda:
-           # self.ax.lines.pop(0)       esta linea peta, en ningun momento tocamos ax.lines
+            self.ax.lines.pop(0)
             self.rec_lda = False
         if self.metodo is not None and type(self.metodo) is LDA:
             x = np.arange(-20, 21, 10)
-            y = self.metodo.w[1]*x/self.metodo.w[0]  # TODO: ver por que demonios la recta es esta
+            y = self.metodo.w[1]*x/self.metodo.w[0]
+            self.ax.plot(x, y, color='k')
             self.rec_lda = True
 
         clase_fondo = map((lambda x: 'C' + str(x)), self.metodo.classify(self.fondo))
