@@ -46,17 +46,17 @@ class LDA_Multiclass(object):
             mean = np.vstack(mi_arr)
             total_mean = np.mean(X, axis=1)
             # Generacion de x_cent
-            mi_S_k = []
+            mi_S_w = []
             mi_S_b = []
             for i in range(0, t.shape[0]):
                 elems = X[:, t[i] == 1]
                 x_i_m_i = elems.T - mean[i]
-                mi_S_k.append(x_i_m_i)
+                mi_S_w.append(x_i_m_i)
 
                 m_i_m = mean[i] - total_mean
                 mi_S_b.append(elems.shape[1] * m_i_m.dot(m_i_m.T))
 
-            x_cent = np.vstack(mi_S_k).T
+            x_cent = np.vstack(mi_S_w).T
             med_cent = np.vstack(mi_S_b).T
             s_w = x_cent.dot(x_cent.T)
             s_b = np.sum(med_cent)
