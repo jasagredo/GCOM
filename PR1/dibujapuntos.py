@@ -62,7 +62,7 @@ class CreatePoints(object):
         if self.rec_lda:
             self.ax.lines.pop(0)
             self.rec_lda = False
-        if self.metodo is not None and type(self.metodo) is LDA:
+        if self.metodo is not None and type(self.metodo) is LDA_Multiclass:
             x = np.arange(-20, 21, 10)
             y = self.metodo.w[1]*x/self.metodo.w[0]
             self.ax.plot(x, y, color='k')
@@ -91,6 +91,7 @@ class CreatePoints(object):
             print points
             plt.close()
             return points
+
 
         if event.inaxes == self.axb3:           # Pulsar en Clase +
             if self.clase_actual == self.clase_max and self.conteo_clase_max > 0:
@@ -127,15 +128,10 @@ class CreatePoints(object):
             return
 
         elif event.inaxes == self.axb2:         # Pulsar en LDA
-            if (self.clase_max == 1 and self.conteo_clase_max > 0) or\
-                    (self.clase_max == 2 and self.conteo_clase_max == 0):
-                x = self.parsea_circulos()
-                self.metodo = LDA()
-                self.metodo.train(x, self.t)     # Esto parece que funciona guay
-                self.metodo.get_root(x, self.t)  # Quiza habria que meter el get_root dentro de train
-                self.colorize_bg()
-            else:
-                print("No tenemos solo dos clases para LDA")
+            x = self.parsea_circulos()
+            self.metodo = LDA_Multiclass(self.clase_max+1)
+            self.metodo.train(x, self.t)
+            self.colorize_bg()
             return
 
         else:                                   # Pulsar dentro del grafico
@@ -173,7 +169,7 @@ class CreatePoints(object):
         # A lo mejor hay que meter aqui que el evento sea dentro de la figura para evitar el bug del readme
         if self.metodo is not None and self.current_circle is not None:
             x = self.parsea_circulos()
-            print(self.metodo.train(x, self.t))
+            self.metodo.train(x, self.t)
             self.colorize_bg()
         self.press_event = None
         self.current_circle = None
