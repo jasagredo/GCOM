@@ -18,6 +18,6 @@ Machine Learning and Pattern Recognition algorithms
 - [x] dynamic recalculation.
 - [x] dynamic drawing.
 - [x] LDA Multiclass line calculation
-- [ ] LDA Multiclass separating value(s)?
+- [x] LDA Multiclass separating value(s)
 
 - [ ] bug detected: moving a point outside the board doesn't allow releasing it unless you click again outside the board.
