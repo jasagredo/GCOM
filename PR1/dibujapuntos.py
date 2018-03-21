@@ -120,7 +120,7 @@ class CreatePoints(object):
             if self.clase_max > 0 and not (self.clase_max == 1 and self.conteo_clase_max == 0):
                 x = self.parsea_circulos()
                 self.metodo = LeastSquares()
-                print(self.metodo.train(x, self.t))
+                self.metodo.train(x, self.t)
                 self.colorize_bg()
 
             else:
@@ -129,7 +129,10 @@ class CreatePoints(object):
 
         elif event.inaxes == self.axb2:         # Pulsar en LDA
             x = self.parsea_circulos()
-            self.metodo = LDA_Multiclass(self.clase_max+1)
+            if self.conteo_clase_max == 0:
+                self.metodo = LDA_Multiclass(self.clase_max)
+            else:
+                self.metodo = LDA_Multiclass(self.clase_max+1)
             self.metodo.train(x, self.t)
             self.colorize_bg()
             return

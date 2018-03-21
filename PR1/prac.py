@@ -18,8 +18,6 @@ class LeastSquares(object):
 
         self.w_tilde = np.linalg.solve(A, b)
 
-        return self.w_tilde
-
     def classify(self, x):
         if self.w_tilde is None:
             print("No has entrenado el metodo")
@@ -135,13 +133,13 @@ class LDA_Multiclass(object):
                 for pt in x.T:
                     valor = []
                     for k in range(0, self.nc):
-                        x_cent = pt - self.mean[k]
-                        elems = self.x[:, self.t[k] == 1]
-                        x_i_m_i = elems.T - self.mean[k]
+                        x_cent = self.w.T.dot(pt - self.mean[k])
+                        elems = self.w.T.dot(self.x[:, self.t[k] == 1])
+                        x_i_m_i = elems.T - self.w.T.dot(self.mean[k])
                         sigma = 1/self.n[k] * x_i_m_i.T.dot(x_i_m_i)
-                        a1 = x_cent.reshape(2,1).T.dot(np.linalg.inv(sigma))
-                        a2 = a1.dot(x_cent)
-                        a3 = np.log(np.linalg.det(sigma))
+                        a1 = x_cent /sigma
+                        a2 = a1 * x_cent
+                        a3 = np.log(sigma)
                         a4 = 2*np.log(self.n[k]/self.nt)
                         valor.append(a2 + a3 - a4)
                     res.append(np.argmin(valor))
