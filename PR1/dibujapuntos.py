@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 from matplotlib.widgets import Button
-from prac import *
+from Clasificadores import *
 
 
 class CreatePoints(object):
