@@ -21,13 +21,13 @@ Machine Learning and Pattern Recognition algorithms
 - [x] LDA Multiclass separating value(s)
 
 ## Second exercise: code 10 perceptron (one for each digit) and test them using the NIST database
-- [ ] understand the MNIST format [referenced here](http://yann.lecun.com/exdb/mnist/)
-- [ ] code one perceptron for normal values
+- [x] understand the MNIST format [referenced here](http://yann.lecun.com/exdb/mnist/)
+- [x] code one perceptron for normal values
 - [ ] integrate it with matplotlib
-- [ ] organize the array of perceptrons for each digit
-- [ ] make the perceptron analyze MNIST images
-- [ ] prepare the train and test
-- [ ] run the train and test
+- [x] organize the array of perceptrons for each digit
+- [x] make the perceptron analyze MNIST images
+- [x] prepare the train and test
+- [x] run the train and test
 - [ ] draw on matplotlib
 - [ ] create a perceptron for the transformed XOR problem
 
