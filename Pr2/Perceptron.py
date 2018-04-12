@@ -2,7 +2,8 @@ import numpy as np
 
 
 class Perceptron:
-    def __init__(self, D):
+    def __init__(self, D, iters):
+        self.iters = iters
         self.size = D
         self.w_tilde = np.random.rand(self.size+1)
 
@@ -19,7 +20,7 @@ class Perceptron:
 
         X_tilde = np.vstack([np.ones_like(X.T[0]), X.T])
 
-        for i in range(3):
+        for i in range(100):
             for j in range(X_tilde.shape[1]):
                 elem = X_tilde[:, j]
                 elem_t = T[j]
