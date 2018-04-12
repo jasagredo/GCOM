@@ -12,7 +12,7 @@ class Perceptron:
         return self.w_tilde.dot(x_tilde)
 
     def eval(self, x):
-        return self.eval_weights(x)
+        return self.w_tilde.dot(x)
 
     def train(self, X, T, w0=None, eta=0.1):
         if w0 is not None:
@@ -20,12 +20,13 @@ class Perceptron:
 
         X_tilde = np.vstack([np.ones_like(X.T[0]), X.T])
 
-        for i in range(100):
+        for i in range(self.iters):
             for j in range(X_tilde.shape[1]):
                 elem = X_tilde[:, j]
                 elem_t = T[j]
-                if np.multiply(self.w_tilde.dot(elem), elem_t) < 0:
-                    self.w_tilde = self.w_tilde + eta * elem * elem_t
+                estimate = self.eval(elem)
+                if estimate * elem_t < 0:
+                    self.w_tilde = self.w_tilde + eta * elem * (elem_t - np.sign(estimate))
 
     def get_weights(self):
         return self.w_tilde[1:]

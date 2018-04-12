@@ -31,7 +31,6 @@ class CreatePoints(object):
         self.y0 = None
         self.ejes = ejes
 
-        self.scat_rem = None
         self.rec = None
 
         self.fig = fig
@@ -60,9 +59,12 @@ class CreatePoints(object):
         if self.conteo_clase[0] == 0 or self.conteo_clase[1] == 0:
             print('No has rellenado dos clases')
         else:
-            self.perceptron = Perceptron(2, int(np.rint(self.iters)))
+            if self.perceptron is None:
+                self.perceptron = Perceptron(2, int(np.rint(self.iters)))
+            self.perceptron.iters = self.iters
             x = self.parsea_circulos()
             self.perceptron.train(x, self.t, eta=self.eta)
+            print(self.perceptron.w_tilde)
             self.colorize_bg()
 
     def update(self, val):
@@ -70,20 +72,14 @@ class CreatePoints(object):
         self.iters = siters.val
 
     def colorize_bg(self):
-        if self.scat_rem is not None:
-            self.scat_rem.remove()
-            self.scat_rem = None
         if self.rec:
             self.ax.lines.pop(0)
             self.rec = False
 
         x = np.arange(-20, 21, 10)
-        y = -self.perceptron.w_tilde[2] * x / self.perceptron.w_tilde[1] + self.perceptron.w_tilde[0]
+        y = -self.perceptron.w_tilde[1] * x / self.perceptron.w_tilde[2] + self.perceptron.w_tilde[0]
         self.ax.plot(x, y, color='k')
         self.rec = True
-
-        # clase_fondo = map((lambda x: 'C' + str(x)), self.metodo.classify(self.fondo))
-        # self.scat_rem = self.ax.scatter(self.fondo[0], self.fondo[1], color=clase_fondo, alpha=0.2, s=5)
         self.fig.canvas.draw()
 
     def parsea_circulos(self):
