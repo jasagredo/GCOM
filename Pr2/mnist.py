@@ -17,7 +17,7 @@ test_x = test[:, :test.shape[1]-1]
 test_t = test[:, test.shape[1]-1:]
 perceptrones = []
 for i in range(10):
-    per = Perceptron(data.shape[1], 5)
+    per = Perceptron(data.shape[1], 3)
     aux = np.equal(train_t, np.ones_like(train_t)*i).reshape(train_x.shape[0])
     X_1 = train_x[aux, :]
     X_2 = train_x[np.logical_not(aux), :]
@@ -50,5 +50,6 @@ for i in range(test_x.shape[0]):
     else:
         mal_esta[sal] = 1
     mal += mal_esta
+    mal_esta = np.zeros(10)
 for i in range(10):
     print('Perceptron {0} - Porcentaje de fallo de clasificacion en el test {1}'.format(i, mal[i]*100/cl))

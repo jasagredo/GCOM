@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
-from matplotlib.widgets import Button, Slider, RadioButtons
+from matplotlib.widgets import Button, RadioButtons, TextBox
 from Perceptron import *
 
 
@@ -17,7 +17,7 @@ class CreatePoints(object):
          ax: matplotlib axes
     """
 
-    def __init__(self, fig, ax, bperc, siters, seta, radio, ejes):
+    def __init__(self, fig, ax, widgets):
         self.circle_list = []
         self.t = np.array([])
         self.conteo_clase = [0, 0]
@@ -25,18 +25,15 @@ class CreatePoints(object):
         self.eta = 0.1
         self.iters = 3
         self.clases = {'Clase 1': 0, 'Clase 2': 1}
+        self.w0 = None
 
         self.perceptron = None
-        self.x0 = None
-        self.y0 = None
-        self.ejes = ejes
 
         self.scat_rem = None
-        self.rec = None
+        self.fondo = np.mgrid[-20:20:0.5, -20:20:0.5].reshape(2, 6400)
 
         self.fig = fig
         self.ax = ax
-        self.fondo = np.mgrid[-20:20:0.5, -20:20:0.5].reshape(2, 6400)
 
         self.cidpress = fig.canvas.mpl_connect(
             'button_press_event', self.on_press)
@@ -45,31 +42,56 @@ class CreatePoints(object):
         self.cidmove = fig.canvas.mpl_connect(
             'motion_notify_event', self.on_move)
 
-        siters.on_changed(self.update)
-        seta.on_changed(self.update)
-        bperc.on_clicked(self.ejec)
-        radio.on_clicked(self.colorfunc)
+        widgets['radio'].on_clicked(self.selec)
 
+        widgets['w0x'].on_submit(self.upd_w0x)
+        widgets['w0y'].on_submit(self.upd_w0y)
+        widgets['bias'].on_submit(self.upd_bias)
+        widgets['eta'].on_submit(self.upd_eta)
+        widgets['iters'].on_submit(self.upd_iters)
+
+        widgets['per'].on_clicked(self.ejec)
+
+        self.x0 = None
+        self.y0 = None
         self.press_event = None
         self.current_circle = None
 
-    def colorfunc(self, label):
+    def selec(self, label):
         self.clase_actual = self.clases[label]
+
+    def upd_w0x(self, text):
+        if self.w0 is None:
+            self.w0 = np.zeros(3)
+        self.w0[1] = float(text)
+
+    def upd_w0y(self, text):
+        if self.w0 is None:
+            self.w0 = np.zeros(3)
+        self.w0[2] = float(text)
+
+    def upd_bias(self, text):
+        if self.w0 is None:
+            self.w0 = np.zeros(3)
+        self.w0[0] = float(text)
+
+    def upd_eta(self, text):
+        self.eta = float(text)
+
+    def upd_iters(self, text):
+        self.iters = int(np.rint(float(text)))
 
     def ejec(self, event):
         if self.conteo_clase[0] == 0 or self.conteo_clase[1] == 0:
             print('No has rellenado dos clases')
         else:
             if self.perceptron is None:
-                self.perceptron = Perceptron(2, int(np.rint(self.iters)))
-            self.perceptron.iters = self.iters
+                self.perceptron = Perceptron(2, self.iters)
+            else:
+                self.perceptron.iters = self.iters
             x = self.parsea_circulos()
-            self.perceptron.train(x, self.t, eta=self.eta)
+            self.perceptron.train(x, self.t, w0=self.w0, eta=self.eta)
             self.colorize_bg()
-
-    def update(self, val):
-        self.eta = seta.val
-        self.iters = siters.val
 
     def colorize_bg(self):
         if self.scat_rem is not None:
@@ -88,7 +110,7 @@ class CreatePoints(object):
         return np.array(x)
 
     def on_press(self, event):
-        if event.button == 3:  # Pulsar con el boton derecho
+        if event.button == 3:
             self.fig.canvas.mpl_disconnect(self.cidpress)
             self.fig.canvas.mpl_disconnect(self.cidrelease)
             self.fig.canvas.mpl_disconnect(self.cidmove)
@@ -97,10 +119,7 @@ class CreatePoints(object):
             plt.close()
             return points
 
-        elif event.inaxes != self.ejes[0] and \
-             event.inaxes != self.ejes[1] and \
-             event.inaxes != self.ejes[2] and \
-             event.inaxes != self.ejes[3]:  # Pulsar dentro del grafico
+        elif event.inaxes == self.ax:
             x0, y0 = event.xdata, event.ydata
             for circle in self.circle_list:
                 contains, attr = circle.contains(event)
@@ -125,7 +144,6 @@ class CreatePoints(object):
             self.fig.canvas.draw()
 
     def on_release(self, event):
-        # A lo mejor hay que meter aqui que el evento sea dentro de la figura para evitar el bug del readme
         self.press_event = None
         self.current_circle = None
 
@@ -145,21 +163,36 @@ if __name__ == '__main__':
     fig, ax = plt.subplots()
     plt.subplots_adjust(left=0.25, bottom=0.25)
 
-    axiters = plt.axes([0.25, 0.1, 0.65, 0.03])
-    axeta = plt.axes([0.25, 0.15, 0.65, 0.03])
-    resetax = plt.axes([0.8, 0.025, 0.1, 0.04])
-    rax = plt.axes([0.025, 0.5, 0.15, 0.15])
+    resetax = plt.axes([0.025, 0.1, 0.25, 0.04])
+    rax = plt.axes([0.1, 0.7, 0.15, 0.15])
     bperc = Button(resetax, 'Perceptron', hovercolor='0.975')
-    f0 = 3
-    siters = Slider(axiters, 'Iters', 1, 10, valinit=f0)
-    a0 = 0.1
-    seta = Slider(axeta, 'Eta', 0.01, 1, valinit=a0)
     radio = RadioButtons(rax, ('Clase 1', 'Clase 2'), active=0)
-    ejes = [axiters, axeta, resetax, rax]
+
+    w0x_ini = '0.0'
+    axbox = plt.axes([0.1, 0.6, 0.15, 0.04])
+    w0x = TextBox(axbox, 'w0[x]', initial=w0x_ini)
+
+    w0y_ini = '0.0'
+    axbox = plt.axes([0.1, 0.55, 0.15, 0.04])
+    w0y = TextBox(axbox, 'w0[y]', initial=w0y_ini)
+
+    bias_ini = '0.0'
+    axbox = plt.axes([0.1, 0.5, 0.15, 0.04])
+    bias = TextBox(axbox, 'Bias', initial=bias_ini)
+
+    eta_ini = '0.1'
+    axbox = plt.axes([0.1, 0.4, 0.15, 0.04])
+    eta = TextBox(axbox, 'Eta', initial=eta_ini)
+
+    iters_ini = '3'
+    axbox = plt.axes([0.1, 0.3, 0.15, 0.04])
+    iters = TextBox(axbox, 'Iters', initial=iters_ini)
+
+    widgets = {'eta': eta, 'iters': iters, 'bias': bias, 'w0x': w0x, 'w0y': w0y, 'per': bperc, 'radio': radio}
 
     ax.set_xlim(-20, 20)
     ax.set_ylim(-20, 20)
     ax.set_aspect('equal')
 
-    start = CreatePoints(fig, ax, bperc, siters, seta, radio, ejes)
+    start = CreatePoints(fig, ax, widgets)
     plt.show()
