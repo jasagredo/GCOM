@@ -31,6 +31,7 @@ class CreatePoints(object):
         self.y0 = None
         self.ejes = ejes
 
+        self.scat_rem = None
         self.rec = None
 
         self.fig = fig
@@ -64,7 +65,6 @@ class CreatePoints(object):
             self.perceptron.iters = self.iters
             x = self.parsea_circulos()
             self.perceptron.train(x, self.t, eta=self.eta)
-            print(self.perceptron.w_tilde)
             self.colorize_bg()
 
     def update(self, val):
@@ -72,14 +72,13 @@ class CreatePoints(object):
         self.iters = siters.val
 
     def colorize_bg(self):
-        if self.rec:
-            self.ax.lines.pop(0)
-            self.rec = False
+        if self.scat_rem is not None:
+            self.scat_rem.remove()
+            self.scat_rem = None
 
-        x = np.arange(-20, 21, 10)
-        y = -self.perceptron.w_tilde[1] * x / self.perceptron.w_tilde[2] + self.perceptron.w_tilde[0]
-        self.ax.plot(x, y, color='k')
-        self.rec = True
+        clase_fondo = map((lambda x: 'C0' if self.perceptron.eval_weights(x) > 0 else 'C1'), self.fondo.T)
+        self.scat_rem = self.ax.scatter(self.fondo[0], self.fondo[1], color=clase_fondo, alpha=0.2, s=5)
+
         self.fig.canvas.draw()
 
     def parsea_circulos(self):

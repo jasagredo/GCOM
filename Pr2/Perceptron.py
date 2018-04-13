@@ -20,7 +20,7 @@ class Perceptron:
 
         X_tilde = np.vstack([np.ones_like(X.T[0]), X.T])
 
-        for i in range(self.iters):
+        for i in range(int(np.rint(self.iters))):
             for j in range(X_tilde.shape[1]):
                 elem = X_tilde[:, j]
                 elem_t = T[j]
