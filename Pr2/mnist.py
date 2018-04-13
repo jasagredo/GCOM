@@ -44,7 +44,7 @@ for i in range(test_x.shape[0]):
         arr.append(val)
     sal = np.argmax(np.array(arr))
     cl = cl + 1
-    print('{0}% completado'.format(i*100/test_x.shape[0]))
+    print('{0:.2f}% completado'.format(i*100/test_x.shape[0]))
     if mal_esta[sal] == 1:
         mal_esta[sal] = 0
     else:
@@ -52,4 +52,4 @@ for i in range(test_x.shape[0]):
     mal += mal_esta
     mal_esta = np.zeros(10)
 for i in range(10):
-    print('Perceptron {0} - Porcentaje de fallo de clasificacion en el test {1}'.format(i, mal[i]*100/cl))
+    print('Perceptron {0} - Porcentaje de fallo en el test {1:.4f}%'.format(i, mal[i]*100/cl))
