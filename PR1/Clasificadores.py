@@ -18,8 +18,6 @@ class LeastSquares(object):
 
         self.w_tilde = np.linalg.solve(A, b)
 
-        return self.w_tilde
-
     def classify(self, x):
         if self.w_tilde is None:
             print("No has entrenado el metodo")
@@ -35,21 +33,31 @@ class LDA_Multiclass(object):
         self.w = None
         self.c = None
         self.nc = nc
+        self.x = None
+        self.t = None
+        self.mean = None
+        self.n = np.zeros(nc)
+        self.nt = 0
 
     def train(self, X, t):
         if self.nc > 2:
             # Generacion del vector de medias
+            self.x = X
+            self.t = t
+            self.nt = X.shape[1]
             mi_arr = []
             for i in range(0, t.shape[0]):
                 media_i = np.mean(X[:, t[i] == 1], axis=1)
                 mi_arr.append(media_i)
             mean = np.vstack(mi_arr)
+            self.mean = mean
             total_mean = np.mean(X, axis=1)
             # Generacion de x_cent
             mi_S_w = []
             mi_S_b = []
             for i in range(0, t.shape[0]):
                 elems = X[:, t[i] == 1]
+                self.n[i] = elems.shape[1]
                 x_i_m_i = elems.T - mean[i]
                 mi_S_w.append(x_i_m_i)
 
@@ -87,39 +95,56 @@ class LDA_Multiclass(object):
             self.w = self.w / np.linalg.norm(self.w)
 
 
-        medias = []
-        probs = []
-        sigs = []
-        for i in range(0, t.shape[0]):
-            elems = X[:, t[i] == 1]
-            medias.append(np.mean(self.w.T.dot(elems)))
+            medias = []
+            probs = []
+            sigs = []
+            for i in range(0, t.shape[0]):
+                elems = X[:, t[i] == 1]
+                medias.append(np.mean(self.w.T.dot(elems)))
 
-            probs_i = elems.shape[1] / X.shape[1]
-            probs.append(probs_i)
+                probs_i = elems.shape[1] / X.shape[1]
+                probs.append(probs_i)
 
-            sigs.append(np.var(self.w.T.dot(elems)))
+                sigs.append(np.var(self.w.T.dot(elems)))
 
-        mean = np.vstack(medias)
-        prob = np.vstack(probs)
-        sig = np.vstack(sigs)
+            mean = np.vstack(medias)
+            prob = np.vstack(probs)
+            sig = np.vstack(sigs)
 
-        a_2 = 1 / (2 * (sig[1] ** 2)) - 1 / (2 * (sig[0] ** 2))
-        a_1 = mean[0] / (sig[0] ** 2) - mean[1] / (sig[1] ** 2)
-        a_0 = (mean[1] ** 2) / (2 * (sig[1] ** 2)) - (mean[0] ** 2) / (2 * (sig[0] ** 2)) + np.log(
-            prob[0] / sig[0]) - np.log(prob[1] / sig[1])
-        poly = np.hstack([a_2, a_1, a_0])
-        print(poly)
-        raices = np.roots(poly)
-        print(raices)
-        if 2 * a_2 * raices[0] + a_1 > 0:
-            self.c = raices[0]
-        else:
-            self.c = raices[1]
+            a_2 = 1 / (2 * (sig[1] ** 2)) - 1 / (2 * (sig[0] ** 2))
+            a_1 = mean[0] / (sig[0] ** 2) - mean[1] / (sig[1] ** 2)
+            a_0 = (mean[1] ** 2) / (2 * (sig[1] ** 2)) - (mean[0] ** 2) / (2 * (sig[0] ** 2)) + np.log(
+                prob[0] / sig[0]) - np.log(prob[1] / sig[1])
+            poly = np.hstack([a_2, a_1, a_0])
+            print(poly)
+            raices = np.roots(poly)
+            print(raices)
+            if 2 * a_2 * raices[0] + a_1 > 0:
+                self.c = raices[0]
+            else:
+                self.c = raices[1]
 
     def classify(self, x):
         if self.w is None:
             print("No has entrenado el metodo")
         else:
-            val = self.w.T.dot(x)
-            res = map((lambda x: 1 if x < self.c else 0), val)
-            return res
+            if self.nc > 2:
+                res = []
+                for pt in x.T:
+                    valor = []
+                    for k in range(0, self.nc):
+                        x_cent = self.w.T.dot(pt - self.mean[k])
+                        elems = self.w.T.dot(self.x[:, self.t[k] == 1])
+                        x_i_m_i = elems.T - self.w.T.dot(self.mean[k])
+                        sigma = 1/self.n[k] * x_i_m_i.T.dot(x_i_m_i)
+                        a1 = x_cent /sigma
+                        a2 = a1 * x_cent
+                        a3 = np.log(sigma)
+                        a4 = 2*np.log(self.n[k]/self.nt)
+                        valor.append(a2 + a3 - a4)
+                    res.append(np.argmin(valor))
+                return res
+            else:
+                val = self.w.T.dot(x)
+                res = map((lambda x: 1 if x < self.c else 0), val)
+                return res
