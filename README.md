@@ -23,11 +23,11 @@ Machine Learning and Pattern Recognition algorithms
 ## Second exercise: code 10 perceptron (one for each digit) and test them using the NIST database
 - [x] understand the MNIST format [referenced here](http://yann.lecun.com/exdb/mnist/)
 - [x] code one perceptron for normal values
-- [ ] integrate it with matplotlib
+- [x] integrate it with matplotlib
 - [x] organize the array of perceptrons for each digit
 - [x] make the perceptron analyze MNIST images
 - [x] prepare the train and test
 - [x] run the train and test
-- [ ] draw on matplotlib
-- [ ] create a perceptron for the transformed XOR problem
+- [x] draw on matplotlib
+- [x] create a perceptron for the transformed XOR problem
 
