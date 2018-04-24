@@ -13,10 +13,9 @@ def transformacion(elem):
 
 a = np.array(map(transformacion, datos_iniciales))
 
-per = Perceptron(3, 5)
-per.train(a, t)
-print(per.w_tilde)
-
+per = Perceptron(3, 8)
+per.train(a, t, w0=np.array([0.16943406, 0.64104446, 0.01417507, 0.95339745]))
+#per.train(a, t)
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 
@@ -30,10 +29,6 @@ z2 = a.T[2][t == -1]
 
 ax.scatter(x1, y1, z1, c='r', marker='o')
 ax.scatter(x2, y2, z2, c='b', marker='^')
-
-ax.set_xlabel('X Label')
-ax.set_ylabel('Y Label')
-ax.set_zlabel('Z Label')
 
 fondo = np.mgrid[0:1:0.05, 0:1.5:0.05, 0:1:0.05].reshape(3, 12000)
 

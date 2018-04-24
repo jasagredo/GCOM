@@ -17,7 +17,7 @@ class DibujaNumeros:
         self.x0 = None
         self.y0 = None
         self.press_event = None
-        _ , self.perceptrones = train_mnist()
+        _ , _, self.perceptrones = train_mnist()
 
         self.cidpress = fig.canvas.mpl_connect(
             'button_press_event', self.on_press)
@@ -44,8 +44,8 @@ class DibujaNumeros:
     def on_move(self, event):
         if self.press_event is not None:
             x0, y0 = int(np.rint(event.xdata)), int(np.rint(event.ydata))
-            if (self.x0 != x0 or self.y0 != y0) and self.mat[y0, x0] == 0:
-                self.mat[y0, x0] = 1
+            #if (self.x0 != x0 or self.y0 != y0) and self.mat[y0, x0] == 0:
+            self.mat[y0, x0] = 1
 
     def on_release(self, event):
         if self.press_event is not None:

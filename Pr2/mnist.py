@@ -31,12 +31,13 @@ def train_mnist():
         print('Comienza train de perceptron {0}'.format(i))
         per.train(X, T)
         perceptrones.append(per)
-    return test_x, perceptrones
+    return test_x, test_t, perceptrones
 
-def test_mnist(test_x, perceptrones):
+def test_mnist(test_x, test_t, perceptrones):
     mal = np.zeros(10)
     mal_esta = np.zeros(10)
     cl = 0
+    print(test_t)
     print('Comienza el test')
     for i in range(test_x.shape[0]):
         arr = []
@@ -46,13 +47,13 @@ def test_mnist(test_x, perceptrones):
             if val > 0:
                 mal_esta[j] = 1
             arr.append(val)
-        sal = np.argmax(np.array(arr))
+        np.argmax(np.array(arr))
         cl = cl + 1
         print('{0:.2f}% completado'.format(i*100/test_x.shape[0]))
-        if mal_esta[sal] == 1:
-            mal_esta[sal] = 0
+        if mal_esta[int(test_t[i])] == 1:
+            mal_esta[int(test_t[i])] = 0
         else:
-            mal_esta[sal] = 1
+            mal_esta[int(test_t[i])] = 1
         mal += mal_esta
         mal_esta = np.zeros(10)
     for i in range(10):
@@ -60,4 +61,5 @@ def test_mnist(test_x, perceptrones):
 
 
 if __name__ == '__main__':
-    test_mnist(train_mnist())
+    test_x, test_t, perceptrones = train_mnist()
+    test_mnist(test_x, test_t.flatten(), perceptrones)

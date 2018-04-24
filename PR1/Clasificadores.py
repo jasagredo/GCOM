@@ -116,9 +116,7 @@ class LDA_Multiclass(object):
             a_0 = (mean[1] ** 2) / (2 * (sig[1] ** 2)) - (mean[0] ** 2) / (2 * (sig[0] ** 2)) + np.log(
                 prob[0] / sig[0]) - np.log(prob[1] / sig[1])
             poly = np.hstack([a_2, a_1, a_0])
-            print(poly)
             raices = np.roots(poly)
-            print(raices)
             if 2 * a_2 * raices[0] + a_1 > 0:
                 self.c = raices[0]
             else:

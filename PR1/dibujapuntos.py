@@ -88,7 +88,6 @@ class CreatePoints(object):
             self.fig.canvas.mpl_disconnect(self.cidrelease)
             self.fig.canvas.mpl_disconnect(self.cidmove)
             points = [circle.center for circle in self.circle_list]
-            print points
             plt.close()
             return points
 
@@ -120,18 +119,21 @@ class CreatePoints(object):
             if self.clase_max > 0 and not (self.clase_max == 1 and self.conteo_clase_max == 0):
                 x = self.parsea_circulos()
                 self.metodo = LeastSquares()
-                print(self.metodo.train(x, self.t))
+                self.metodo.train(x, self.t)
                 self.colorize_bg()
 
             else:
-                print("Como vas a clasificar si solo tienes una clase, Sherlock")
+                print("No se puede clasificar solo con una clase")
             return
 
-        elif event.inaxes == self.axb2:         # Pulsar en LDA
-            x = self.parsea_circulos()
-            self.metodo = LDA_Multiclass(self.clase_max+1)
-            self.metodo.train(x, self.t)
-            self.colorize_bg()
+        elif event.inaxes == self.axb2:
+            if self.clase_max > 0 and not (self.clase_max == 1 and self.conteo_clase_max == 0):# Pulsar en LDA
+                x = self.parsea_circulos()
+                self.metodo = LDA_Multiclass(self.clase_max+1)
+                self.metodo.train(x, self.t)
+                self.colorize_bg()
+            else:
+                print("No se puede clasificar solo con una clase")
             return
 
         else:                                   # Pulsar dentro del grafico
