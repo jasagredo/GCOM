@@ -13,8 +13,8 @@ def transformacion(elem):
 
 a = np.array(map(transformacion, datos_iniciales))
 
-per = Perceptron(3, 8)
-per.train(a, t, w0=np.array([0.16943406, 0.64104446, 0.01417507, 0.95339745]))
+per = Perceptron(3, 400)
+per.train(a, t)
 #per.train(a, t)
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')

@@ -24,7 +24,7 @@ class Perceptron:
                 elem_t = T[j]
                 estimate = self.eval(elem)
                 if estimate * elem_t < 0:
-                    self.w_tilde = self.w_tilde + eta * elem * (elem_t - np.sign(estimate))
+                    self.w_tilde = self.w_tilde + eta * elem * elem_t
 
     def get_weights(self):
         return self.w_tilde[1:]
