@@ -18,7 +18,7 @@ def train_mnist():
     test_t = test[:, test.shape[1]-1:]
     perceptrones = []
     for i in range(10):
-        per = Perceptron(data.shape[1], 3)
+        per = Perceptron(data.shape[1], 50)
         aux = np.equal(train_t, np.ones_like(train_t)*i).reshape(train_x.shape[0])
         X_1 = train_x[aux, :]
         X_2 = train_x[np.logical_not(aux), :]

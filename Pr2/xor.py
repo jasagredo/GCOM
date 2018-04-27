@@ -14,7 +14,7 @@ def transformacion(elem):
 a = np.array(map(transformacion, datos_iniciales))
 
 per = Perceptron(3, 400)
-per.train(a, t)
+per.train(a, t, inf=True)
 #per.train(a, t)
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
@@ -35,4 +35,10 @@ fondo = np.mgrid[0:1:0.05, 0:1.5:0.05, 0:1:0.05].reshape(3, 12000)
 clase_fondo = map((lambda x: 'C1' if per.eval_weights(x) > 0 else 'C0'), fondo.T)
 ax.scatter(fondo[0], fondo[1], fondo[2], color=clase_fondo, alpha=0.2, s=5)
 
+print(np.sign(per.eval_weights(a[0])),
+np.sign(per.eval_weights(a[1])),
+np.sign(per.eval_weights(a[2])),
+np.sign(per.eval_weights(a[3])))
+
 plt.show()
+
