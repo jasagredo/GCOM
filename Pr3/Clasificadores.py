@@ -65,6 +65,7 @@ class LDA_classifier(object):
         med_cent = np.vstack(mi_S_b).T
         s_w = x_cent.dot(x_cent.T)
         s_b = np.sum(med_cent)
+        # TODO: peta porque s_w es una matriz singular (muchisimos ceros)
         s_w_s_b = np.linalg.inv(s_w).dot(s_b)
         u, s, _ = np.linalg.svd(s_w_s_b)
         # S = np.dot(np.dot(u, np.diag(s)),u.T)

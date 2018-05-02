@@ -4,6 +4,11 @@ from sklearn.datasets import fetch_mldata
 from Clasificadores import *
 from PCA import *
 
+def one_hot(x):
+    can = np.zeros(10)
+    can[int(x)] = 1
+    return can
+
 def train_mnist():
     mnist = fetch_mldata('MNIST original', data_home = '~/Documents/Universidad/GCOM/Pr3')
     data = mnist.data
@@ -11,16 +16,16 @@ def train_mnist():
     mis_digitos = np.hstack([data, target.reshape(data.shape[0], 1)])
     np.random.shuffle(mis_digitos)
     ochenta = int(np.rint(mis_digitos.shape[0]*0.8))
-    # TODO transformar en one-hot para pasarselo al LDA
     train = mis_digitos[:ochenta, :]
     train_x = train[:, :train.shape[1]-1]
     train_t = train[:, train.shape[1]-1:]
+    train_t = np.array(map(one_hot, train_t))
     test = mis_digitos[ochenta:, :]
     test_x = test[:, :test.shape[1]-1]
     test_t = test[:, test.shape[1]-1:]
+    test_t = np.array(map(one_hot, test_t))
 
-    assert False # Esto va a petar así que un aserto a tiempo siempre viene bien
-    lda = LDA_classifier(train_x, train_t)
+    lda = LDA_classifier(train_x.T, train_t.T)
     lda.train(0.3)
     return test_x, test_t, lda
 
