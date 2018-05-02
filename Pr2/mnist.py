@@ -4,7 +4,7 @@ from sklearn.datasets import fetch_mldata
 from Perceptron import *
 
 def train_mnist():
-    mnist = fetch_mldata('MNIST original', data_home = '~/Documents/GCOM/Pr2')
+    mnist = fetch_mldata('MNIST original', data_home = '~/Documents/Universidad/GCOM/Pr2')
     data = mnist.data
     target = mnist.target
     mis_digitos = np.hstack([data, target.reshape(data.shape[0], 1)])

@@ -26,7 +26,7 @@ class PCA(object):
 
     def compresion(self, data, tol=0.1):
         mean = np.mean(data, axis=1)
-
+        assert tol > 0
         x_cent = (data.T - mean).T
         u, s, _ = np.linalg.svd(x_cent)
         # S = np.dot(np.dot(u, np.diag(s)),u.T)
@@ -37,15 +37,13 @@ class PCA(object):
         val = 0
         for i in range(s.shape[0]-1, -1, -1):
             val += s2[i]
-            perdida = val/denom
             if val/denom > tol:
                 dp = i
                 break
-        print(dp)
         w = u[:, 0:dp]
         transformados = np.dot(w.T, data)
 
-        fig = plt.figure(figsize=(7, 7))
+        '''fig = plt.figure(figsize=(7, 7))
         ax = fig.add_subplot(111, projection='3d')
 
         ax.plot(todos[0, :], todos[1, :], todos[2, :], 'o', markersize=8, color='green', alpha=0.2)
@@ -92,7 +90,7 @@ class PCA(object):
         plt.legend()
         plt.title('Transformed samples with class labels from matplotlib.mlab.PCA()')
 
-        plt.show()
+        plt.show()'''
 
         return transformados
 
