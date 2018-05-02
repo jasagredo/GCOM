@@ -2,6 +2,7 @@
 (Inf*
 Pr2/mldat*
 .DS_Store
+Practica*.pdf
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
