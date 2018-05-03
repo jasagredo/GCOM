@@ -1,6 +1,7 @@
 from __future__ import print_function, division
 import matplotlib.pyplot as plt
 import numpy as np
+from PCA import *
 
 __author__ = "Carlos Armero Canto, Miguel Benito Parejo & Javier Sagredo Tamayo"
 
@@ -30,6 +31,8 @@ class LeastSquares(object):
 
 class LDA_classifier(object):
     def __init__(self, X, T):
+        ''' X: D x N
+            t: C x N'''
         self.w = None
         self.c = None
         self.nc = 10
@@ -37,37 +40,32 @@ class LDA_classifier(object):
         self.t = T
         self.mean = None
         self.n = np.zeros(10)
-        self.nt = 0
+        self.nt = X.shape[1]
+        self.sigma = None
 
     def train(self, epsilon):
+
         # Generacion del vector de medias
-        self.nt = self.x.shape[1]
-        mi_arr = []
+        mean = np.zeros((self.t.shape[0], self.x.shape[0]))
         for i in range(0, self.t.shape[0]):
-            media_i = np.mean(self.x[:, self.t[i] == 1], axis=1)
-            mi_arr.append(media_i)
-        mean = np.vstack(mi_arr)
+            mean[i] = np.mean(self.x[:, self.t[i] == 1], axis=1)
         self.mean = mean
         total_mean = np.mean(self.x, axis=1)
         # Generacion de x_cent
-        mi_S_w = []
-        mi_S_b = []
+        s_w = np.zeros((self.x.shape[0], self.x.shape[0]))
+        s_b = np.zeros(s_w.shape)
         for i in range(0, self.t.shape[0]):
-            elems = self.x[:, self.t[i] == 1]
-            self.n[i] = elems.shape[1]
-            x_i_m_i = elems.T - mean[i]
-            mi_S_w.append(x_i_m_i)
+            elems = self.x[:, self.t[i] == 1].T
+            self.n[i] = elems.shape[0]
+            for elem in elems:
+                x_i_m_i = (elem - mean[i]).T
+                s_w += np.outer(x_i_m_i, x_i_m_i)
 
             m_i_m = mean[i] - total_mean
-            mi_S_b.append(elems.shape[1] * m_i_m.dot(m_i_m.T))
+            s_b += (elems.shape[1] * np.outer(m_i_m, m_i_m))
 
-        x_cent = np.vstack(mi_S_w).T
-        med_cent = np.vstack(mi_S_b).T
-        s_w = x_cent.dot(x_cent.T)
-        s_b = np.sum(med_cent)
-        # TODO: peta porque s_w es una matriz singular (muchisimos ceros)
         s_w_s_b = np.linalg.inv(s_w).dot(s_b)
-        u, s, _ = np.linalg.svd(s_w_s_b)
+        u, s, _ = np.linalg.svd(s_w_s_b.T, full_matrices=False)
         # S = np.dot(np.dot(u, np.diag(s)),u.T)
         # autovectores son u[:,i], autovalores son s[i]. Ya estan ordenados
         s2 = map(lambda x: x ** 2, s)
@@ -80,23 +78,31 @@ class LDA_classifier(object):
                 dp = i
                 break
         self.w = u[:, 0:dp]
+        self.sigma = np.zeros((self.nc, self.w.shape[1], self.w.shape[1]))
+        for k in range(0, self.nc):
+            elems = self.w.T.dot(self.x[:, self.t[k] == 1]).T
+            for elem in elems:
+                x_i_m_i = elem - self.w.T.dot(self.mean[k])
+                self.sigma[k] += (1 / self.n[k]) * np.outer(x_i_m_i, x_i_m_i)
 
     def classify(self, x):
+        '''x: D x N'''
         if self.w is None:
             print("No has entrenado el metodo")
         else:
             res = []
+            i = 0
             for pt in x.T:
+                if i%100:
+                    print("Testado {0:.4f}%".format(i*100/x.shape[1]))
                 valor = []
                 for k in range(0, self.nc):
                     x_cent = self.w.T.dot(pt - self.mean[k])
-                    elems = self.w.T.dot(self.x[:, self.t[k] == 1])
-                    x_i_m_i = elems.T - self.w.T.dot(self.mean[k])
-                    sigma = 1/self.n[k] * x_i_m_i.T.dot(x_i_m_i)
-                    a1 = x_cent /sigma
-                    a2 = a1 * x_cent
-                    a3 = np.log(sigma)
+                    a1 = np.dot(x_cent,np.linalg.inv(self.sigma[k]))
+                    a2 = np.dot(a1, x_cent)
+                    a3 = np.log(np.linalg.det(self.sigma[k]))
                     a4 = 2*np.log(self.n[k]/self.nt)
                     valor.append(a2 + a3 - a4)
                 res.append(np.argmin(valor))
+                i += 1
             return res

@@ -47,11 +47,9 @@ class LDA_Multiclass(object):
             self.x = X
             self.t = t
             self.nt = X.shape[1]
-            mi_arr = []
+            mean = np.zeros((t.shape[0], X.shape[0]))
             for i in range(0, t.shape[0]):
-                media_i = np.mean(X[:, t[i] == 1], axis=1)
-                mi_arr.append(media_i)
-            mean = np.vstack(mi_arr)
+                mean[i] = np.mean(X[:, t[i] == 1], axis=1)
             self.mean = mean
             total_mean = np.mean(X, axis=1)
             # Generacion de x_cent
@@ -59,7 +57,7 @@ class LDA_Multiclass(object):
             s_b = np.zeros(s_w.shape)
             for i in range(0, t.shape[0]):
                 elems = X[:, t[i] == 1].T
-                self.n[i] = elems.shape[1]
+                self.n[i] = elems.shape[0]
                 for elem in elems:
                     x_i_m_i = (elem - mean[i]).T
                     s_w += np.outer(x_i_m_i, x_i_m_i)
@@ -70,6 +68,12 @@ class LDA_Multiclass(object):
             s_w_s_b = np.linalg.inv(s_w).dot(s_b)
             v, w = np.linalg.eig(s_w_s_b)
             self.w = w[:, np.argmax(v)]
+            self.sigma = np.zeros(self.nc)
+            for k in range(0, self.nc):
+                elems = self.w.T.dot(self.x[:, self.t[k] == 1]).T
+                for elem in elems:
+                    x_i_m_i = elem - self.w.T.dot(self.mean[k])
+                    self.sigma[k] += (1 / self.n[k]) * np.outer(x_i_m_i, x_i_m_i)
 
         else:
             # Generacion del vector de medias
@@ -124,13 +128,10 @@ class LDA_Multiclass(object):
                     valor = []
                     for k in range(0, self.nc):
                         x_cent = self.w.T.dot(pt - self.mean[k])
-                        elems = self.w.T.dot(self.x[:, self.t[k] == 1])
-                        x_i_m_i = elems.T - self.w.T.dot(self.mean[k])
-                        sigma = 1/self.n[k] * x_i_m_i.T.dot(x_i_m_i)
-                        a1 = x_cent /sigma
-                        a2 = a1 * x_cent
-                        a3 = np.log(sigma)
-                        a4 = 2*np.log(self.n[k]/self.nt)
+                        a1 = np.dot(x_cent, 1/self.sigma[k])
+                        a2 = np.dot(a1, x_cent)
+                        a3 = np.log(self.sigma[k])
+                        a4 = 2 * np.log(self.n[k] / self.nt)
                         valor.append(a2 + a3 - a4)
                     res.append(np.argmin(valor))
                 return res
