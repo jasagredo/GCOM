@@ -126,8 +126,8 @@ class CreatePoints(object):
                 print("No se puede clasificar solo con una clase")
             return
 
-        elif event.inaxes == self.axb2:
-            if self.clase_max > 0 and not (self.clase_max == 1 and self.conteo_clase_max == 0):# Pulsar en LDA
+        elif event.inaxes == self.axb2: # Pulsar en LDA
+            if self.clase_max > 0 and not (self.clase_max == 1 and self.conteo_clase_max == 0):
                 x = self.parsea_circulos()
                 self.metodo = LDA_Multiclass(self.clase_max+1)
                 self.metodo.train(x, self.t)
