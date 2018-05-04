@@ -1,5 +1,7 @@
 from __future__ import print_function, division
 import matplotlib.pyplot as plt
+from matplotlib.patches import Circle
+from matplotlib.widgets import Button
 import numpy as np
 from PCA import *
 
@@ -38,11 +40,11 @@ class LDA_classifier(object):
             t: C x N'''
         self.w = None
         self.c = None
-        self.nc = 10
+        self.nc = T.shape[0]
         self.x = X
         self.t = T
         self.mean = None
-        self.n = np.zeros(10)
+        self.n = np.zeros(T.shape[0])
         self.nt = X.shape[1]
         self.sigma = None
 
@@ -82,6 +84,8 @@ class LDA_classifier(object):
             if val / denom > epsilon:
                 dp = i
                 break
+        if dp == 0:
+            dp = 1
         self.w = u[:, 0:dp]
         print("LDA ha reducido a {0} dimensiones".format(dp))
         self.sigma = np.zeros((self.nc, self.w.shape[1], self.w.shape[1]))

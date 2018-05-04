@@ -90,7 +90,7 @@ class CreatePoints(object):
             else:
                 self.perceptron.iters = self.iters
             x = self.parsea_circulos()
-            self.perceptron.train(x, self.t, w0=self.w0, eta=self.eta)
+            self.perceptron.train(x.T, self.t, w0=self.w0, eta=self.eta)
             self.colorize_bg()
 
     def colorize_bg(self):

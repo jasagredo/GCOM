@@ -18,7 +18,7 @@ def train_mnist():
     test_t = test[:, test.shape[1]-1:]
     perceptrones = []
     for i in range(10):
-        per = Perceptron(data.shape[1], 50)
+        per = Perceptron(data.shape[0], 50)
         aux = np.equal(train_t, np.ones_like(train_t)*i).reshape(train_x.shape[0])
         X_1 = train_x[aux, :]
         X_2 = train_x[np.logical_not(aux), :]
@@ -29,7 +29,7 @@ def train_mnist():
         X = aux2[:, :aux2.shape[1] - 1]
         T = aux2[:, aux2.shape[1] - 1:]
         print('Comienza train de perceptron {0}'.format(i))
-        per.train(X, T)
+        per.train(X.T, T)
         perceptrones.append(per)
     return test_x, test_t, perceptrones
 
