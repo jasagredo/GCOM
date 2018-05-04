@@ -18,7 +18,9 @@ class PCA(object):
         mean = np.mean(data, axis=1)
         assert tol > 0
         x_cent = data - np.expand_dims(mean, axis=1)
+        print("Comienza SVD (esto puede tardar)...")
         u, s, _ = np.linalg.svd(x_cent, full_matrices=False)
+        print("SVD terminado")
         # S = np.dot(np.dot(u, np.diag(s)),u.T)
         # autovectores son u[:,i], autovalores son s[i]. Ya estan ordenados
         s2 = map(lambda x: x**2, s)

@@ -11,6 +11,11 @@ class LeastSquares(object):
         self.w_tilde = None
 
     def train(self, X, t):
+        """ X: D x N
+            t: C x N
+            None
+         """
+
         x_tilde = np.vstack([np.ones_like(X[0]), X])
 
         A = np.dot(x_tilde, x_tilde.T)
@@ -19,6 +24,9 @@ class LeastSquares(object):
         self.w_tilde = np.linalg.solve(A, b)
 
     def classify(self, x):
+        """ x: D x N
+            v[N]
+        """
         if self.w_tilde is None:
             print("No has entrenado el metodo")
         else:
@@ -30,6 +38,7 @@ class LeastSquares(object):
 
 class LDA_Multiclass(object):
     def __init__(self, nc):
+        '''nc = C'''
         self.w = None
         self.c = None
         self.nc = nc

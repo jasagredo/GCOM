@@ -12,6 +12,8 @@ class LeastSquares(object):
         self.w_tilde = None
 
     def train(self, X, t):
+        ''' X: D x N
+            t: C x N'''
         x_tilde = np.vstack([np.ones_like(X[0]), X])
 
         A = np.dot(x_tilde, x_tilde.T)
@@ -20,6 +22,7 @@ class LeastSquares(object):
         self.w_tilde = np.linalg.solve(A, b)
 
     def classify(self, x):
+        ''' x: D x N'''
         if self.w_tilde is None:
             print("No has entrenado el metodo")
         else:
@@ -65,7 +68,9 @@ class LDA_classifier(object):
             s_b += (elems.shape[1] * np.outer(m_i_m, m_i_m))
 
         s_w_s_b = np.linalg.inv(s_w).dot(s_b)
+        print("Comienza SVD (esto puede tardar)...")
         u, s, _ = np.linalg.svd(s_w_s_b.T, full_matrices=False)
+        print("SVD terminado!")
         # S = np.dot(np.dot(u, np.diag(s)),u.T)
         # autovectores son u[:,i], autovalores son s[i]. Ya estan ordenados
         s2 = map(lambda x: x ** 2, s)
@@ -78,6 +83,7 @@ class LDA_classifier(object):
                 dp = i
                 break
         self.w = u[:, 0:dp]
+        print("LDA ha reducido a {0} dimensiones".format(dp))
         self.sigma = np.zeros((self.nc, self.w.shape[1], self.w.shape[1]))
         for k in range(0, self.nc):
             elems = self.w.T.dot(self.x[:, self.t[k] == 1]).T
@@ -91,10 +97,7 @@ class LDA_classifier(object):
             print("No has entrenado el metodo")
         else:
             res = []
-            i = 0
             for pt in x.T:
-                if i%100:
-                    print("Testado {0:.4f}%".format(i*100/x.shape[1]))
                 valor = []
                 for k in range(0, self.nc):
                     x_cent = self.w.T.dot(pt - self.mean[k])
@@ -104,5 +107,4 @@ class LDA_classifier(object):
                     a4 = 2*np.log(self.n[k]/self.nt)
                     valor.append(a2 + a3 - a4)
                 res.append(np.argmin(valor))
-                i += 1
             return res
