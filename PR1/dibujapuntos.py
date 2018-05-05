@@ -62,7 +62,7 @@ class CreatePoints(object):
         if self.rec_lda:
             self.ax.lines.pop(0)
             self.rec_lda = False
-        if self.metodo is not None and type(self.metodo) is LDA_Multiclass:
+        if self.metodo is not None and type(self.metodo) is Lda:
             x = np.arange(-20, 21, 10)
             y = self.metodo.w[1]*x/self.metodo.w[0]
             self.ax.plot(x, y, color='k')
@@ -118,7 +118,8 @@ class CreatePoints(object):
         elif event.inaxes == self.axb1:         # Pulsar en Least Squares
             if self.clase_max > 0 and not (self.clase_max == 1 and self.conteo_clase_max == 0):
                 x = self.parsea_circulos()
-                self.metodo = LeastSquares()
+                if self.metodo is not LeastSquares:
+                    self.metodo = LeastSquares()
                 self.metodo.train(x, self.t)
                 self.colorize_bg()
 
@@ -129,7 +130,8 @@ class CreatePoints(object):
         elif event.inaxes == self.axb2: # Pulsar en LDA
             if self.clase_max > 0 and not (self.clase_max == 1 and self.conteo_clase_max == 0):
                 x = self.parsea_circulos()
-                self.metodo = LDA_Multiclass(self.clase_max+1)
+                if self.metodo is not Lda:
+                    self.metodo = Lda()
                 self.metodo.train(x, self.t)
                 self.colorize_bg()
             else:

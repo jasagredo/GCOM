@@ -18,7 +18,7 @@ class LeastSquares(object):
 
         x_tilde = np.vstack([np.ones_like(X[0]), X])
 
-        A = np.dot(x_tilde, x_tilde.T)
+        A = np.dot(x_tilde, x_tilde.T).T
         b = np.dot(x_tilde, t.T)
 
         self.w_tilde = np.linalg.solve(A, b)
@@ -36,53 +36,61 @@ class LeastSquares(object):
                 x_tilde = np.vstack([np.ones_like(x[0]),x])
             return (self.w_tilde.T.dot(x_tilde)).argmax(axis=0)
 
-class LDA_Multiclass(object):
-    def __init__(self, nc):
+
+class Lda(object):
+    def __init__(self):
         '''nc = C'''
         self.w = None
         self.c = None
-        self.nc = nc
+        self.nc = 0
         self.x = None
         self.t = None
         self.mean = None
-        self.n = np.zeros(nc)
+        self.sigma = None
+        self.n = None
         self.nt = 0
 
     def train(self, X, t):
         ''' X: D x N
             t: C x N'''
+        self.nc = t.shape[0]
+        self.n = np.zeros(self.nc)
         if self.nc > 2:
-            # Generacion del vector de medias
+
             self.x = X
             self.t = t
             self.nt = X.shape[1]
+
+            # Generacion del vector de medias
             mean = np.zeros((t.shape[0], X.shape[0]))
             for i in range(0, t.shape[0]):
                 mean[i] = np.mean(X[:, t[i] == 1], axis=1)
             self.mean = mean
             total_mean = np.mean(X, axis=1)
-            # Generacion de x_cent
+
+            # Generacion de s_w
             s_w = np.zeros((X.shape[0], X.shape[0]))
-            s_b = np.zeros(s_w.shape)
+            self.sigma = np.zeros((t.shape[0], 1, 1))
             for i in range(0, t.shape[0]):
-                elems = X[:, t[i] == 1].T
-                self.n[i] = elems.shape[0]
-                for elem in elems:
-                    x_i_m_i = (elem - mean[i]).T
-                    s_w += np.outer(x_i_m_i, x_i_m_i)
+                elems = X[:, t[i] == 1]
+                self.n[i] = elems.shape[1]
+                x_i_m_i = elems - mean[i][:, np.newaxis]
+                s_w += np.dot(x_i_m_i, x_i_m_i.T)
 
-                m_i_m = mean[i] - total_mean
-                s_b += (elems.shape[1] * np.outer(m_i_m, m_i_m))
+            # Generacion de s_b
+            m_i_m = mean.T - total_mean[:, np.newaxis]
+            s_b = np.dot(m_i_m, m_i_m.T)
 
+            # Obtencion de los autovectores de (sw)^-1 sb
             s_w_s_b = np.linalg.inv(s_w).dot(s_b)
             v, w = np.linalg.eig(s_w_s_b)
             self.w = w[:, np.argmax(v)]
-            self.sigma = np.zeros(self.nc)
-            for k in range(0, self.nc):
-                elems = self.w.T.dot(self.x[:, self.t[k] == 1]).T
-                for elem in elems:
-                    x_i_m_i = elem - self.w.T.dot(self.mean[k])
-                    self.sigma[k] += (1 / self.n[k]) * np.outer(x_i_m_i, x_i_m_i)
+
+            # Preparacion de las sigmas
+            for i in range(0, t.shape[0]):
+                elems = self.w.T.dot(X[:, t[i] == 1])
+                x_i_m_i = elems - self.w.T.dot(mean[i])
+                self.sigma[i] = np.dot(x_i_m_i, x_i_m_i.T)
 
         else:
             # Generacion del vector de medias
@@ -93,26 +101,24 @@ class LDA_Multiclass(object):
             # Generacion de s_w
             s_w = np.zeros((X.shape[0], X.shape[0]))
             for i in range(0, t.shape[0]):
-                elems = X[:, t[i] == 1].T
-                for elem in elems:
-                    x_i_m_i = (elem - mean[i]).T
-                    s_w += np.outer(x_i_m_i, x_i_m_i)
+                elems = X[:, t[i] == 1]
+                x_i_m_i = elems - mean[i][:, np.newaxis]
+                s_w += np.dot(x_i_m_i, x_i_m_i.T)
 
+            # Generacion de b
             b = mean[0] - mean[1]
 
             self.w = np.linalg.solve(s_w, b)
             self.w = self.w / np.linalg.norm(self.w)
 
-            # Train del clasificador
+            # Generacion del valor de corte
             mean = np.zeros(t.shape[0])
             prob = np.zeros(mean.shape)
             sig = np.zeros(mean.shape)
             for i in range(0, t.shape[0]):
                 elems = X[:, t[i] == 1]
                 mean[i] = np.mean(self.w.T.dot(elems))
-
                 prob[i] = elems.shape[1] / X.shape[1]
-
                 sig[i] = np.var(self.w.T.dot(elems))
 
             poly = np.zeros(3)
