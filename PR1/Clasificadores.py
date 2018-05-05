@@ -70,7 +70,6 @@ class Lda(object):
 
             # Generacion de s_w
             s_w = np.zeros((X.shape[0], X.shape[0]))
-            self.sigma = np.zeros((t.shape[0], 1, 1))
             for i in range(0, t.shape[0]):
                 elems = X[:, t[i] == 1]
                 self.n[i] = elems.shape[1]
@@ -87,6 +86,7 @@ class Lda(object):
             self.w = w[:, np.argmax(v)]
 
             # Preparacion de las sigmas
+            self.sigma = np.zeros((t.shape[0], 1, 1))
             for i in range(0, t.shape[0]):
                 elems = self.w.T.dot(X[:, t[i] == 1])
                 x_i_m_i = elems - self.w.T.dot(mean[i])

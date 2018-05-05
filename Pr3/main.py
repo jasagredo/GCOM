@@ -5,6 +5,7 @@ from Clasificadores import *
 from PCA import *
 from Perceptron import *
 from sklearn.datasets import load_breast_cancer
+import sklearn.metrics as met
 
 nd = 10
 
@@ -45,7 +46,10 @@ def use_lda(test_t, test_x, train_t, train_x):
     cl = test_x.shape[1]
     print('Comienza el test...')
     res = lda.classify(test_x)
-
+    print("Accuracy: {0}".format(met.accuracy_score(test_t, res)))
+    print("Precision: {0}".format(met.precision_score(test_t, res, average='macro')))
+    print("F1: {0}".format(met.f1_score(test_t, res, average='macro')))
+    print("Recall: {0}".format(met.recall_score(test_t, res, average='macro')))
     mal = len(filter((lambda x: x[0] != x[1]), zip(res, test_t)))
     print('#### Resultados:')
     print('Mal clasificado: {0:.4f}\n'.format(mal * 100 / cl))
@@ -124,13 +128,13 @@ if __name__ == '__main__':
     test_t, test_x, train_t, train_x = obtenerMNIST()
     use_lda(test_t, test_x, train_t, train_x)
     use_ls(test_t, test_x, train_t, train_x)
-    use_10perceptron(test_t, test_x, train_t, train_x)
+    #use_10perceptron(test_t, test_x, train_t, train_x)
 
-    nd = 2
-    test_t, test_x, train_t, train_x = obtenerBCWD()
-    use_lda(test_t, test_x, train_t, train_x)
-    use_ls(test_t, test_x, train_t, train_x)
-    use_perceptron(test_t, test_x, train_t, train_x)
+    #nd = 2
+    #test_t, test_x, train_t, train_x = obtenerBCWD()
+    #use_lda(test_t, test_x, train_t, train_x)
+    #use_ls(test_t, test_x, train_t, train_x)
+    #use_perceptron(test_t, test_x, train_t, train_x)
 
 
 

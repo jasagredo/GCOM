@@ -1,7 +1,4 @@
 from __future__ import print_function, division
-import matplotlib.pyplot as plt
-from matplotlib.patches import Circle
-from matplotlib.widgets import Button
 import numpy as np
 from PCA import *
 
@@ -14,17 +11,22 @@ class LeastSquares(object):
         self.w_tilde = None
 
     def train(self, X, t):
-        ''' X: D x N
-            t: C x N'''
+        """ X: D x N
+            t: C x N
+            None
+         """
+
         x_tilde = np.vstack([np.ones_like(X[0]), X])
 
-        A = np.dot(x_tilde, x_tilde.T)
+        A = np.dot(x_tilde, x_tilde.T).T
         b = np.dot(x_tilde, t.T)
 
         self.w_tilde = np.linalg.solve(A, b)
 
     def classify(self, x):
-        ''' x: D x N'''
+        """ x: D x N
+            v[N]
+        """
         if self.w_tilde is None:
             print("No has entrenado el metodo")
         else:
@@ -56,22 +58,26 @@ class LDA_classifier(object):
             mean[i] = np.mean(self.x[:, self.t[i] == 1], axis=1)
         self.mean = mean
         total_mean = np.mean(self.x, axis=1)
-        # Generacion de x_cent
+
+        # Generacion de s_w
         s_w = np.zeros((self.x.shape[0], self.x.shape[0]))
         s_b = np.zeros(s_w.shape)
         for i in range(0, self.t.shape[0]):
-            elems = self.x[:, self.t[i] == 1].T
-            self.n[i] = elems.shape[0]
-            for elem in elems:
-                x_i_m_i = (elem - mean[i]).T
-                s_w += np.outer(x_i_m_i, x_i_m_i)
+            elems = self.x[:, self.t[i] == 1]
+            self.n[i] = elems.shape[1]
+            x_i_m_i = elems - mean[i][:, np.newaxis]
+            s_w += np.dot(x_i_m_i, x_i_m_i.T)
 
             m_i_m = mean[i] - total_mean
             s_b += (elems.shape[1] * np.outer(m_i_m, m_i_m))
 
+        # Obtencion de los autovalores de (sw)^-1 sb
         s_w_s_b = np.linalg.inv(s_w).dot(s_b)
         print("Comienza SVD (esto puede tardar)...")
+        start = time.time()
         u, s, _ = np.linalg.svd(s_w_s_b.T, full_matrices=False)
+        end = time.time()
+        print("Ha tardado {0}".format(end-start))
         print("SVD terminado!")
         # S = np.dot(np.dot(u, np.diag(s)),u.T)
         # autovectores son u[:,i], autovalores son s[i]. Ya estan ordenados
@@ -87,11 +93,12 @@ class LDA_classifier(object):
         if dp == 0:
             dp = 1
         self.w = u[:, 0:dp]
+
         print("LDA ha reducido a {0} dimensiones".format(dp))
         self.sigma = np.zeros((self.nc, self.w.shape[1], self.w.shape[1]))
         for k in range(0, self.nc):
-            elems = self.w.T.dot(self.x[:, self.t[k] == 1]).T
-            for elem in elems:
+            elems = self.w.T.dot(self.x[:, self.t[k] == 1])
+            for elem in elems.T:
                 x_i_m_i = elem - self.w.T.dot(self.mean[k])
                 self.sigma[k] += (1 / self.n[k]) * np.outer(x_i_m_i, x_i_m_i)
 
@@ -105,7 +112,7 @@ class LDA_classifier(object):
                 valor = []
                 for k in range(0, self.nc):
                     x_cent = self.w.T.dot(pt - self.mean[k])
-                    a1 = np.dot(x_cent,np.linalg.inv(self.sigma[k]))
+                    a1 = np.dot(x_cent.T ,np.linalg.inv(self.sigma[k]))
                     a2 = np.dot(a1, x_cent)
                     a3 = np.log(np.linalg.det(self.sigma[k]))
                     a4 = 2*np.log(self.n[k]/self.nt)
