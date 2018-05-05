@@ -75,7 +75,7 @@ class LDA_classifier(object):
         s_w_s_b = np.linalg.inv(s_w).dot(s_b)
         print("Comienza SVD (esto puede tardar)...")
         start = time.time()
-        u, s, _ = np.linalg.svd(s_w_s_b.T, full_matrices=False)
+        u, s, _ = np.linalg.svd(s_w_s_b, full_matrices=False)
         end = time.time()
         print("SVD terminado!")
         print("Ha tardado {0:.4f} segundos".format(end-start))
