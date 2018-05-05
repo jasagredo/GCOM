@@ -90,7 +90,7 @@ class CreatePoints(object):
             else:
                 self.perceptron.iters = self.iters
             x = self.parsea_circulos()
-            self.perceptron.train(x.T, self.t, w0=self.w0, eta=self.eta)
+            self.perceptron.train(x, self.t, w0=self.w0, eta=self.eta)
             self.colorize_bg()
 
     def colorize_bg(self):
@@ -98,7 +98,7 @@ class CreatePoints(object):
             self.scat_rem.remove()
             self.scat_rem = None
 
-        clase_fondo = map((lambda x: 'C0' if self.perceptron.eval_weights(x) > 0 else 'C1'), self.fondo.T)
+        clase_fondo = map((lambda x: 'C0' if self.perceptron.eval(x) > 0 else 'C1'), self.fondo.T)
         self.scat_rem = self.ax.scatter(self.fondo[0], self.fondo[1], color=clase_fondo, alpha=0.2, s=5)
 
         self.fig.canvas.draw()
@@ -107,7 +107,7 @@ class CreatePoints(object):
         x = []
         for circle in self.circle_list:
             x.append(circle.center)
-        return np.array(x)
+        return np.array(x).T
 
     def on_press(self, event):
         if event.button == 3:
