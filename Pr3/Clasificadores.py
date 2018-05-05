@@ -1,6 +1,6 @@
 from __future__ import print_function, division
 import numpy as np
-from PCA import *
+import time
 
 __author__ = "Carlos Armero Canto, Miguel Benito Parejo & Javier Sagredo Tamayo"
 
@@ -77,8 +77,8 @@ class LDA_classifier(object):
         start = time.time()
         u, s, _ = np.linalg.svd(s_w_s_b.T, full_matrices=False)
         end = time.time()
-        print("Ha tardado {0}".format(end-start))
         print("SVD terminado!")
+        print("Ha tardado {0:.4f} segundos".format(end-start))
         # S = np.dot(np.dot(u, np.diag(s)),u.T)
         # autovectores son u[:,i], autovalores son s[i]. Ya estan ordenados
         s2 = map(lambda x: x ** 2, s)

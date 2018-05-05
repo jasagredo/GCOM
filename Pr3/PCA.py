@@ -19,8 +19,8 @@ class PCA(object):
         start = time.time()
         u, s, _ = np.linalg.svd(x_cent, full_matrices=False)
         end = time.time()
-        print("Ha tardado {0}".format(end - start))
-        print("SVD terminado")
+        print("SVD terminado!")
+        print("Ha tardado {0:.4f} segundos".format(end - start))
         # S = np.dot(np.dot(u, np.diag(s)),u.T)
         # autovectores son u[:,i], autovalores son s[i]. Ya estan ordenados
         s2 = map(lambda x: x**2, s)
