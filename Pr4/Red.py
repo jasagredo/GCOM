@@ -1,4 +1,6 @@
+from __future__ import print_function, division
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 class multilayer_perceptron:
@@ -60,6 +62,7 @@ class multilayer_perceptron:
             self.pesos[i][1:, 0] = np.random.rand(len(self.res[i]))
             self.pesos[i][1:, 1:] = np.random.rand(len(self.res[i]), len(self.res[i-1]))
 
+
     def train(self, X, T, eta, epochs=1):
         """ X: D x N
             T: N
@@ -67,10 +70,14 @@ class multilayer_perceptron:
             epochs: numero
         """
         for _ in range(epochs):
+            print('')
             for i in range(X.shape[1]):
                 self.res[0] = np.hstack([1,X[:, i]]) # metemos el valor en las neuronas de entrada
                 self.propagar()
-                self.retropropagar(T[i], eta)
+                if T.ndim == 1:
+                    self.retropropagar(T[i], eta)
+                else:
+                    self.retropropagar(T[:, i], eta)
 
     def propagar(self):
         for k in range(1, len(self.res)):
@@ -82,25 +89,39 @@ class multilayer_perceptron:
         for k in reversed(range(len(self.res))):
             if k == len(self.res) - 1:
                 self.delta.append(self.res[k][1:] - T) # en el caso de la ultima capa, restamos y - t
+                print(sum(self.delta[0]))
             else:
                 a = np.diag(self.res[k][1:]) # a = diag(z^k)
                 b = np.dot(self.pesos[k + 1][1:, 1:].T, self.delta[-1]) # b = w^(k).T * d^(k+1)
                 self.delta.append(a.dot(b))
                 # Notese que en estas dos operaciones las k escritas difieren en uno de las k de los comentarios
-                self.pesos[k + 1][1:, 0] = self.pesos[k+1][1:, 0] - eta * self.delta[-2] # bias_k = pesos_k[1:, 0] lo actualizamos con eta menos su gradiente que es d^(k)
+                self.pesos[k + 1][1:, 0] = self.pesos[k + 1][1:, 0] - eta * self.delta[-2] # bias_k = pesos_k[1:, 0] lo actualizamos con eta menos su gradiente que es d^(k)
                 if len(self.delta[-2]) == 1:
                     self.pesos[k + 1][1:, 1:] = self.pesos[k+1][1:, 1:] - eta * self.delta[-2] * self.res[k][1:] # w_k = pesos_k[1:, 1:] lo actualizamos con eta menos su gradiente que es d^(k) * z_(k-1)
                 else:
-                    self.pesos[k + 1][1:, 1:] = self.pesos[k+1][1:, 1:] - eta * self.delta[-2].dot(self.res[k][1:])
+                    self.pesos[k + 1][1:, 1:] = self.pesos[k+1][1:, 1:] - eta * np.outer(self.delta[-2], self.res[k][1:])
 
-    def classify(self,x):
+    def classify(self, x):
         """ x: D """
         self.res[0] = np.hstack([1, x])
         self.propagar()
         return self.res[-1]
 
-a = multilayer_perceptron(2, 1, [2])
-X = np.array([[1, 1, 0, 0], [1, 0, 1, 0]])
-T = np.array([0,1,1,0])
-a.train(X, T, 0.1)
+class aaa:
+    def __init__(self):
+        a = multilayer_perceptron(2, 2, [2])
+        X = np.array([[1,0,1,0], [1,1,0,0]])
+        T = np.array([0,1,1,0])
+        a.train(X, T, 0.5, epochs=5000)
+        fig, ax = plt.subplots()
+        plt.subplots_adjust(bottom=0.2)
+        ax.set_xlim(-2, 2)
+        ax.set_ylim(-2, 2)
+        ax.set_aspect('equal')
+        fondo = np.mgrid[-2:2:0.05, -2:2:0.05].reshape(2, 6400)
+        clase_fondo = map((lambda x: 'C' + str(x)), map(np.argmax, map(a.classify, fondo.T)))
+        ax.scatter(fondo[0], fondo[1], color=clase_fondo, alpha=0.2, s=5)
+        fig.canvas.draw()
+        plt.show()
 
+a = aaa()
