@@ -18,7 +18,7 @@ class multilayer_perceptron:
 
     @staticmethod
     def relu(a):
-        return max(0, a)
+        return max(0, a)        #TODO peta porque si a es vector, max es ambiguo
 
     @staticmethod
     def softmax(a):
@@ -78,6 +78,9 @@ class multilayer_perceptron:
                     self.retropropagar(T[i], eta)
                 else:
                     self.retropropagar(T[:, i], eta)
+                print(self.pesos)
+                print('')
+                print(self.res)
 
     def propagar(self):
         for k in range(1, len(self.res)):
@@ -92,12 +95,12 @@ class multilayer_perceptron:
                 print(sum(self.delta[0]))
             else:
                 a = np.diag(self.res[k][1:]) # a = diag(z^k)
-                b = np.dot(self.pesos[k + 1][1:, 1:].T, self.delta[-1]) # b = w^(k).T * d^(k+1)
+                b = np.dot(self.pesos[k + 1][1:, 1:].T, self.delta[-1]) # b = w^(k+1).T * d^(k+1)
                 self.delta.append(a.dot(b))
                 # Notese que en estas dos operaciones las k escritas difieren en uno de las k de los comentarios
                 self.pesos[k + 1][1:, 0] = self.pesos[k + 1][1:, 0] - eta * self.delta[-2] # bias_k = pesos_k[1:, 0] lo actualizamos con eta menos su gradiente que es d^(k)
                 if len(self.delta[-2]) == 1:
-                    self.pesos[k + 1][1:, 1:] = self.pesos[k+1][1:, 1:] - eta * self.delta[-2] * self.res[k][1:] # w_k = pesos_k[1:, 1:] lo actualizamos con eta menos su gradiente que es d^(k) * z_(k-1)
+                    self.pesos[k + 1][1:, 1:] = self.pesos[k+1][1:, 1:]- eta * self.delta[-2] * self.res[k][1:] # w_k = pesos_k[1:, 1:] lo actualizamos con eta menos su gradiente que es d^(k) * z_(k-1)
                 else:
                     self.pesos[k + 1][1:, 1:] = self.pesos[k+1][1:, 1:] - eta * np.outer(self.delta[-2], self.res[k][1:])
 
@@ -105,14 +108,14 @@ class multilayer_perceptron:
         """ x: D """
         self.res[0] = np.hstack([1, x])
         self.propagar()
-        return self.res[-1]
+        return self.res[-1][1:]
 
 class aaa:
     def __init__(self):
-        a = multilayer_perceptron(2, 2, [2])
+        a = multilayer_perceptron(2, 2, [2], activation='sigmoid')
         X = np.array([[1,0,1,0], [1,1,0,0]])
         T = np.array([0,1,1,0])
-        a.train(X, T, 0.5, epochs=5000)
+        a.train(X, T, 0.8, epochs=5000)
         fig, ax = plt.subplots()
         plt.subplots_adjust(bottom=0.2)
         ax.set_xlim(-2, 2)
