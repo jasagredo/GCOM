@@ -2,20 +2,25 @@ from __future__ import print_function, division
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 def sigmoid(a):
     if type(a) is not np.ndarray:
         return np.array(1/(1 + np.exp(-a)) if a > 0 else np.exp(a)/(np.exp(a)+1))
     else:
         return np.array(map( lambda a: 1/(1 + np.exp(-a)) if a > 0 else np.exp(a)/(np.exp(a)+1),a))
 
+
 def sigmoid_d(a):
     return np.array(map(lambda a: sigmoid(a) * (1 - sigmoid(a)), a))
+
 
 def tanh(a):
     return (np.exp(2*a) - 1)/(np.exp(2*a) + 1)
 
+
 def tanh_d(a):
     return 1- (tanh(a))**2
+
 
 def relu(a):
     if len(a) > 1:
@@ -23,16 +28,19 @@ def relu(a):
     else:
         return np.maximum(0,a)
 
+
 def relu_d(a):
     if len(a) > 1:
         return np.array(map (lambda i :np.ones(1) if i > 0 else np.zeros(1), a))
     else:
         return np.ones(1) if a > 0 else np.zeros(1)
 
+
 def softmax(a):
     a -= np.max(a)
     denom = np.sum(map(np.exp, a))
     return map(lambda x: np.exp(x)/denom, a)
+
 
 def identity(a):
     return a
@@ -77,7 +85,6 @@ class multilayer_perceptron:
             self.sesgos.append(np.random.rand(len(self.a[i])))
             self.pesos.append(np.random.rand(len(self.a[i]), len(self.a[i - 1])))
 
-
     def train(self, X, T, eta, epochs=1):
         """ X: D x N
             T: N
@@ -92,7 +99,6 @@ class multilayer_perceptron:
                 self.z[0] = elem_x
                 self.propagar()
                 self.retropropagar(elem_t, eta)
-
 
     def propagar(self):
         for k in range(1, len(self.a)):
@@ -125,19 +131,3 @@ class multilayer_perceptron:
         return self.z[-1]
 
 
-a = multilayer_perceptron(2, 1, [2], activation='sigmoid')
-X = np.array([[1,0,1,0], [1,1,0,0]])
-T = np.array([0,1,1,0])
-a.train(X, T, 0.05, epochs=4000)
-fig, ax = plt.subplots()
-plt.subplots_adjust(bottom=0.2)
-ax.set_xlim(-2, 2)
-ax.set_ylim(-2, 2)
-ax.set_aspect('equal')
-fondo = np.mgrid[-2:2:0.05, -2:2:0.05].reshape(2, 6400)
-g = map(a.classify, fondo.T)
-clase_fondo = map((lambda x: 'C' + str(x)), map((lambda x: 1 if x > 0.5 else 0), g))
-ax.scatter(fondo[0], fondo[1], color=clase_fondo, alpha=0.2, s=5)
-ax.scatter(X[0], X[1], color='k')
-fig.canvas.draw()
-plt.show()
