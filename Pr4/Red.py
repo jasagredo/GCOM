@@ -7,7 +7,7 @@ def sigmoid(a):
     if type(a) is not np.ndarray:
         return np.array(1/(1 + np.exp(-a)) if a > 0 else np.exp(a)/(np.exp(a)+1))
     else:
-        return np.array(map( lambda a: 1/(1 + np.exp(-a)) if a > 0 else np.exp(a)/(np.exp(a)+1),a))
+        return np.array(map(lambda a: 1/(1 + np.exp(-a)) if a > 0 else np.exp(a)/(np.exp(a)+1),a))
 
 
 def sigmoid_d(a):
