@@ -2,54 +2,68 @@ from __future__ import print_function, division
 import numpy as np
 import matplotlib.pyplot as plt
 
+def sigmoid(a):
+    if type(a) is not np.ndarray:
+        return np.array(1/(1 + np.exp(-a)) if a > 0 else np.exp(a)/(np.exp(a)+1))
+    else:
+        return np.array(map( lambda a: 1/(1 + np.exp(-a)) if a > 0 else np.exp(a)/(np.exp(a)+1),a))
+
+def sigmoid_d(a):
+    return np.array(map(lambda a: sigmoid(a) * (1 - sigmoid(a)), a))
+
+def tanh(a):
+    return (np.exp(2*a) - 1)/(np.exp(2*a) + 1)
+
+def tanh_d(a):
+    return 1- (tanh(a))**2
+
+def relu(a):
+    if len(a) > 1:
+        return np.array(map (lambda x: np.maximum(0, x), a))
+    else:
+        return np.maximum(0,a)
+
+def relu_d(a):
+    if len(a) > 1:
+        return np.array(map (lambda i :np.ones(1) if i > 0 else np.zeros(1), a))
+    else:
+        return np.ones(1) if a > 0 else np.zeros(1)
+
+def softmax(a):
+    a -= np.max(a)
+    denom = np.sum(map(np.exp, a))
+    return map(lambda x: np.exp(x)/denom, a)
+
+def identity(a):
+    return a
+
 
 class multilayer_perceptron:
-    @staticmethod
-    def sigmoid(a):
-        return 1/(1 + np.exp(-a))
-
-    @staticmethod
-    def sigmoid_d(a):
-        return a*(1-a)
-
-    @staticmethod
-    def tanh(a):
-        return (np.exp(2*a) - 1)/(np.exp(2*a) + 1)
-
-    @staticmethod
-    def relu(a):
-        if len(a) > 1:
-            return np.array(map (lambda x: max(0, x), a))
-        else:
-            return max(0,a)
-
-    @staticmethod
-    def softmax(a):
-        a -= np.max(a)
-        denom = np.sum(map(np.exp, a))
-        return map(lambda x: np.exp(x)/denom, a)
-
-    @staticmethod
-    def identity(a):
-        return a
 
     def __init__(self, n_inputs, n_outputs, n_hidden, activation='sigmoid'):
         """ n_inputs: numero de entradas
             n_outputs: numero de salidas
             n_hidden: lista con las neuronas de cada capa oculta
         """
-        self.res = [np.ones(n_inputs + 1)]
+        self.a = [np.ones(n_inputs)]
+        self.a_d = [np.ones(n_inputs)]
+        self.z = [np.ones(n_inputs)]
         for e in n_hidden:
-            self.res.append(np.ones(e + 1))
-        self.res.append(np.ones(n_outputs + 1))
-        # res[i][j] va a tener el valor de la neurona j-esima de la capa i-esima
+            self.a.append(np.ones(e))
+            self.a_d.append(np.ones(e))
+            self.z.append(np.ones(e))
+        self.a.append(np.ones(n_outputs))
+        self.a_d.append(np.ones(n_outputs))
+        self.z.append(np.ones(n_outputs))
         if activation == 'sigmoid':
-            self.activation = self.sigmoid
-            self.activation_d = self.sigmoid_d
+            self.activation = sigmoid
+            self.activation_d = sigmoid_d
         elif activation == 'tanh':
-            self.activation = self.tanh
+            self.activation = tanh
+            self.activation_d = tanh_d
         elif activation == 'relu':
-            self.activation = self.relu
+            self.activation = relu
+            self.activation_d = relu_d
         elif activation == 'softmax':
             self.activation = self.softmax
         elif activation == 'identity':
@@ -57,13 +71,11 @@ class multilayer_perceptron:
         else:
             print('Error, funcion de activacion no conocida.')
             return
-        # Pesos[i] representa la matriz de la pagina 42 de los apuntes [[1, 0..0],[b_i, w_i]]. Inicializamos a randoms
         self.pesos = [np.array([])]
-        for i in range(1, len(self.res)):
-            self.pesos.append(np.zeros((len(self.res[i]), len(self.res[i-1]))))
-            self.pesos[i][0, 0] = 1
-            self.pesos[i][1:, 0] = (np.random.rand(len(self.res[i]) - 1))/2 + 0.5
-            self.pesos[i][1:, 1:] = (np.random.rand(len(self.res[i]) - 1, len(self.res[i-1]) - 1))/2 + 0.5
+        self.sesgos = [np.array([])]
+        for i in range(1, len(self.a)):
+            self.sesgos.append(np.random.rand(len(self.a[i])))
+            self.pesos.append(np.random.rand(len(self.a[i]), len(self.a[i - 1])))
 
 
     def train(self, X, T, eta, epochs=1):
@@ -73,49 +85,50 @@ class multilayer_perceptron:
             epochs: numero
         """
         a = zip(X.T, T)
-        for _ in range(epochs):
+        for i in range(epochs):
+            print('Epoch {0}'.format(i))
             np.random.shuffle(a)
             for elem_x, elem_t in a:
-                self.res[0] = np.hstack([1,elem_x]) # metemos el valor en las neuronas de entrada
+                self.z[0] = elem_x
                 self.propagar()
                 self.retropropagar(elem_t, eta)
 
 
     def propagar(self):
-        for k in range(1, len(self.res)):
-            self.res[k] = self.pesos[k].dot(self.res[k - 1])
-            self.res[k] = np.hstack([1, self.activation(self.res[k][1:])])
+        for k in range(1, len(self.a)):
+            self.a[k]   = self.pesos[k].dot(self.z[k - 1]) + self.sesgos[k]  # ak
+            self.a_d[k] = self.activation_d(self.a[k])  # h'(ak)
+            self.z[k]   = self.activation(self.a[k])  # h(ak)
 
     def retropropagar(self, T, eta):
-        self.delta = []
-        for k in reversed(range(1, len(self.res))):
-            if k == len(self.res) - 1:
-                self.delta.append(self.res[k][1:] - T)
+        for k in reversed(range(1, len(self.a))):
+            if k == len(self.a) - 1:
+                delta = self.z[k] - T
             else:
-                a = np.diag(self.res[k][1:])
-                if len(self.delta[-1]) == 1:
-                    b = self.pesos[k + 1][1:, 1:].T * self.delta[-1]
+                a = np.diag(self.a_d[k])
+                if delta.shape[0] == 1:
+                    b = self.pesos[k + 1].T * delta
                 else:
-                    b = np.dot(self.pesos[k + 1][1:, 1:].T, self.delta[-1])
-                self.delta.append(a.dot(b).flatten())
+                    b = np.dot(self.pesos[k + 1].T, delta)
+                delta = a.dot(b).flatten()
 
-            self.pesos[k][1:, 0] = self.pesos[k][1:, 0] - eta * self.delta[-1]
-            if len(self.delta[-1]) == 1:
-                self.pesos[k][1:, 1:] = self.pesos[k][1:, 1:] - eta * self.delta[-1] * self.res[k - 1][1:]
+            self.sesgos[k] = self.sesgos[k] - eta * delta
+            if delta.shape[0] == 1:
+                self.pesos[k] = self.pesos[k] - eta * delta * self.z[k - 1]
             else:
-                self.pesos[k][1:, 1:] = self.pesos[k][1:, 1:] - eta * np.outer(self.delta[-1], self.res[k - 1][1:])
+                self.pesos[k] = self.pesos[k] - eta * np.outer(delta, self.z[k - 1])
 
     def classify(self, x):
         """ x: D """
-        self.res[0] = np.hstack([1, x])
+        self.z[0] = x
         self.propagar()
-        return self.res[-1][1:]
+        return self.z[-1]
 
 
-a = multilayer_perceptron(2, 1, [2], activation='tanh')
+a = multilayer_perceptron(2, 1, [2], activation='sigmoid')
 X = np.array([[1,0,1,0], [1,1,0,0]])
 T = np.array([0,1,1,0])
-a.train(X, T, 0.005, epochs=75000)
+a.train(X, T, 0.05, epochs=4000)
 fig, ax = plt.subplots()
 plt.subplots_adjust(bottom=0.2)
 ax.set_xlim(-2, 2)
