@@ -18,7 +18,10 @@ class multilayer_perceptron:
 
     @staticmethod
     def relu(a):
-        return max(0, a)        #TODO peta porque si a es vector, max es ambiguo
+        if len(a) > 1:
+            return np.array(map (lambda x: max(0, x), a))
+        else:
+            return max(0,a)
 
     @staticmethod
     def softmax(a):
@@ -35,10 +38,10 @@ class multilayer_perceptron:
             n_outputs: numero de salidas
             n_hidden: lista con las neuronas de cada capa oculta
         """
-        self.res = [np.ones(n_inputs)]
+        self.res = [np.ones(n_inputs + 1)]
         for e in n_hidden:
-            self.res.append(np.ones(e))
-        self.res.append(np.ones(n_outputs))
+            self.res.append(np.ones(e + 1))
+        self.res.append(np.ones(n_outputs + 1))
         # res[i][j] va a tener el valor de la neurona j-esima de la capa i-esima
         if activation == 'sigmoid':
             self.activation = self.sigmoid
@@ -57,10 +60,10 @@ class multilayer_perceptron:
         # Pesos[i] representa la matriz de la pagina 42 de los apuntes [[1, 0..0],[b_i, w_i]]. Inicializamos a randoms
         self.pesos = [np.array([])]
         for i in range(1, len(self.res)):
-            self.pesos.append(np.zeros((len(self.res[i]) + 1, len(self.res[i-1]) + 1)))
+            self.pesos.append(np.zeros((len(self.res[i]), len(self.res[i-1]))))
             self.pesos[i][0, 0] = 1
-            self.pesos[i][1:, 0] = np.random.rand(len(self.res[i]))
-            self.pesos[i][1:, 1:] = np.random.rand(len(self.res[i]), len(self.res[i-1]))
+            self.pesos[i][1:, 0] = (np.random.rand(len(self.res[i]) - 1))/2 + 0.5
+            self.pesos[i][1:, 1:] = (np.random.rand(len(self.res[i]) - 1, len(self.res[i-1]) - 1))/2 + 0.5
 
 
     def train(self, X, T, eta, epochs=1):
@@ -69,40 +72,38 @@ class multilayer_perceptron:
             eta: numero
             epochs: numero
         """
+        a = zip(X.T, T)
         for _ in range(epochs):
-            print('')
-            for i in range(X.shape[1]):
-                self.res[0] = np.hstack([1,X[:, i]]) # metemos el valor en las neuronas de entrada
+            np.random.shuffle(a)
+            for elem_x, elem_t in a:
+                self.res[0] = np.hstack([1,elem_x]) # metemos el valor en las neuronas de entrada
                 self.propagar()
-                if T.ndim == 1:
-                    self.retropropagar(T[i], eta)
-                else:
-                    self.retropropagar(T[:, i], eta)
-                print(self.pesos)
-                print('')
-                print(self.res)
+                self.retropropagar(elem_t, eta)
+
 
     def propagar(self):
         for k in range(1, len(self.res)):
-            self.res[k] = self.pesos[k].dot(self.res[k - 1]) # calculamos salida con los pesos
-            self.res[k] = np.hstack([1, self.activation(self.res[k][1:])]) # procesamos el dato por la func de activacion y le anadimos un 1 encima
+            self.res[k] = self.pesos[k].dot(self.res[k - 1])
+            self.res[k] = np.hstack([1, self.activation(self.res[k][1:])])
 
     def retropropagar(self, T, eta):
         self.delta = []
-        for k in reversed(range(len(self.res))):
+        for k in reversed(range(1, len(self.res))):
             if k == len(self.res) - 1:
-                self.delta.append(self.res[k][1:] - T) # en el caso de la ultima capa, restamos y - t
-                print(sum(self.delta[0]))
+                self.delta.append(self.res[k][1:] - T)
             else:
-                a = np.diag(self.res[k][1:]) # a = diag(z^k)
-                b = np.dot(self.pesos[k + 1][1:, 1:].T, self.delta[-1]) # b = w^(k+1).T * d^(k+1)
-                self.delta.append(a.dot(b))
-                # Notese que en estas dos operaciones las k escritas difieren en uno de las k de los comentarios
-                self.pesos[k + 1][1:, 0] = self.pesos[k + 1][1:, 0] - eta * self.delta[-2] # bias_k = pesos_k[1:, 0] lo actualizamos con eta menos su gradiente que es d^(k)
-                if len(self.delta[-2]) == 1:
-                    self.pesos[k + 1][1:, 1:] = self.pesos[k+1][1:, 1:]- eta * self.delta[-2] * self.res[k][1:] # w_k = pesos_k[1:, 1:] lo actualizamos con eta menos su gradiente que es d^(k) * z_(k-1)
+                a = np.diag(self.res[k][1:])
+                if len(self.delta[-1]) == 1:
+                    b = self.pesos[k + 1][1:, 1:].T * self.delta[-1]
                 else:
-                    self.pesos[k + 1][1:, 1:] = self.pesos[k+1][1:, 1:] - eta * np.outer(self.delta[-2], self.res[k][1:])
+                    b = np.dot(self.pesos[k + 1][1:, 1:].T, self.delta[-1])
+                self.delta.append(a.dot(b).flatten())
+
+            self.pesos[k][1:, 0] = self.pesos[k][1:, 0] - eta * self.delta[-1]
+            if len(self.delta[-1]) == 1:
+                self.pesos[k][1:, 1:] = self.pesos[k][1:, 1:] - eta * self.delta[-1] * self.res[k - 1][1:]
+            else:
+                self.pesos[k][1:, 1:] = self.pesos[k][1:, 1:] - eta * np.outer(self.delta[-1], self.res[k - 1][1:])
 
     def classify(self, x):
         """ x: D """
@@ -110,21 +111,20 @@ class multilayer_perceptron:
         self.propagar()
         return self.res[-1][1:]
 
-class aaa:
-    def __init__(self):
-        a = multilayer_perceptron(2, 2, [2], activation='sigmoid')
-        X = np.array([[1,0,1,0], [1,1,0,0]])
-        T = np.array([0,1,1,0])
-        a.train(X, T, 0.8, epochs=5000)
-        fig, ax = plt.subplots()
-        plt.subplots_adjust(bottom=0.2)
-        ax.set_xlim(-2, 2)
-        ax.set_ylim(-2, 2)
-        ax.set_aspect('equal')
-        fondo = np.mgrid[-2:2:0.05, -2:2:0.05].reshape(2, 6400)
-        clase_fondo = map((lambda x: 'C' + str(x)), map(np.argmax, map(a.classify, fondo.T)))
-        ax.scatter(fondo[0], fondo[1], color=clase_fondo, alpha=0.2, s=5)
-        fig.canvas.draw()
-        plt.show()
 
-a = aaa()
+a = multilayer_perceptron(2, 1, [2], activation='tanh')
+X = np.array([[1,0,1,0], [1,1,0,0]])
+T = np.array([0,1,1,0])
+a.train(X, T, 0.005, epochs=75000)
+fig, ax = plt.subplots()
+plt.subplots_adjust(bottom=0.2)
+ax.set_xlim(-2, 2)
+ax.set_ylim(-2, 2)
+ax.set_aspect('equal')
+fondo = np.mgrid[-2:2:0.05, -2:2:0.05].reshape(2, 6400)
+g = map(a.classify, fondo.T)
+clase_fondo = map((lambda x: 'C' + str(x)), map((lambda x: 1 if x > 0.5 else 0), g))
+ax.scatter(fondo[0], fondo[1], color=clase_fondo, alpha=0.2, s=5)
+ax.scatter(X[0], X[1], color='k')
+fig.canvas.draw()
+plt.show()
