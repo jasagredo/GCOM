@@ -19,7 +19,7 @@ def tanh(a):
 
 
 def tanh_d(a):
-    return 1- (tanh(a))**2
+    return 1 - (tanh(a))**2
 
 
 def relu(a):
@@ -42,10 +42,19 @@ def softmax(a):
     return map(lambda x: np.exp(x)/denom, a)
 
 
-def cross_entropy(a, t):    #TODO donde o como se llama
-    a = np.maximum(a, 10**-9)
-    return -np.sum(t * np.log(a))
+def softmax_d(a):
+    if np.ndim(a) == 2:
+        a = a[0]
+    result_softmax = softmax(a)
 
+    der = np.diag(result_softmax)
+    for i in range(len(der)):
+        for j in range(len(der)):
+            if i == j:
+                der[i][j] = result_softmax[i] * (1 - result_softmax[i])
+            else:
+                der[i][j] = -result_softmax[i] * result_softmax[j]
+    return der
 
 def identity(a):
     return a
@@ -62,17 +71,23 @@ class multilayer_perceptron:
             n_hidden: lista con las neuronas de cada capa oculta
         """
         self.T = None
-        self.coste = coste
-        self.a = [np.ones(n_inputs)]
-        self.a_d = [np.ones(n_inputs)]
-        self.z = [np.ones(n_inputs)]
-        for e in n_hidden:
-            self.a.append(np.ones(e))
-            self.a_d.append(np.ones(e))
-            self.z.append(np.ones(e))
-        self.a.append(np.ones(n_outputs))
-        self.a_d.append(np.ones(n_outputs))
-        self.z.append(np.ones(n_outputs))
+
+        if coste == 'binaria':
+            self.final = sigmoid
+            self.final_d = sigmoid_d
+        elif coste == 'regresion':
+            self.final = identity
+            self.final_d = identity_d
+        elif coste == 'binaria multiple':
+            self.final = sigmoid
+            self.final_d = sigmoid_d
+        elif coste == 'multiclase':
+            self.final = softmax
+            self.final_d = softmax_d
+        else:
+            print('Error, funcion de coste no conocida.')
+            return
+
         if activation == 'sigmoid':
             self.activation = sigmoid
             self.activation_d = sigmoid_d
@@ -84,13 +99,25 @@ class multilayer_perceptron:
             self.activation_d = relu_d
         elif activation == 'softmax':
             self.activation = softmax
-            self.activation_d = cross_entropy
+            self.activation_d = softmax_d
         elif activation == 'identity':
             self.activation = identity
             self.activation_d = identity_d
         else:
             print('Error, funcion de activacion no conocida.')
             return
+
+        self.a = [np.ones(n_inputs)]
+        self.a_d = [np.ones(n_inputs)]
+        self.z = [np.ones(n_inputs)]
+        for e in n_hidden:
+            self.a.append(np.ones(e))
+            self.a_d.append(np.ones(e))
+            self.z.append(np.ones(e))
+        self.a.append(np.ones(n_outputs))
+        self.a_d.append(np.ones(n_outputs))
+        self.z.append(np.ones(n_outputs))
+
         self.pesos = [np.array([])]
         self.sesgos = [np.array([])]
         for i in range(1, len(self.a)):
@@ -108,10 +135,13 @@ class multilayer_perceptron:
         for i in range(epochs):
             print('Epoch {0}'.format(i))
             np.random.shuffle(a)
+            j = 0
             for elem_x, elem_t in a:
+                print(j)
                 self.z[0] = elem_x
                 self.propagar()
                 self.retropropagar(elem_t, eta)
+                j += 1
 
     def propagar(self):
         for k in range(1, len(self.a) - 1):
@@ -122,35 +152,12 @@ class multilayer_perceptron:
             self.a_d[k] = self.activation_d(self.a[k])  # h'(ak)
             self.z[k]   = self.activation(self.a[k])  # h(ak)
 
-        k = len(self.a) - 1
-        if self.coste == 'binaria':
-            if np.ndim(self.pesos[k]) == 2 and np.ndim(self.z[k-1]) == 2:
-                self.a[k] = self.pesos[k].dot(self.z[k - 1].T) + self.sesgos[k]  # ak
-            else:
-                self.a[k]   = self.pesos[k].dot(self.z[k - 1]) + self.sesgos[k]  # ak
-            self.a_d[k] = sigmoid_d(self.a[k])  # h'(ak)
-            self.z[k]   = sigmoid(self.a[k])  # h(ak)
-        elif self.coste == 'regresion':
-            if np.ndim(self.pesos[k]) == 2 and np.ndim(self.z[k-1]) == 2:
-                self.a[k] = self.pesos[k].dot(self.z[k - 1].T) + self.sesgos[k]  # ak
-            else:
-                self.a[k]   = self.pesos[k].dot(self.z[k - 1]) + self.sesgos[k]  # ak
-            self.a_d[k] = identity_d(self.a[k])  # h'(ak)
-            self.z[k]   = identity(self.a[k])  # h(ak)
-        elif self.coste == 'binaria multiple':
-            if np.ndim(self.pesos[k]) == 2 and np.ndim(self.z[k-1]) == 2:
-                self.a[k] = self.pesos[k].dot(self.z[k - 1].T) + self.sesgos[k]  # ak
-            else:
-                self.a[k]   = self.pesos[k].dot(self.z[k - 1]) + self.sesgos[k]  # ak
-            self.a_d[k] = sigmoid_d(self.a[k])  # h'(ak)
-            self.z[k]   = sigmoid(self.a[k])  # h(ak)
-        elif self.coste == 'multiclase':
-            if np.ndim(self.pesos[k]) == 2 and np.ndim(self.z[k-1]) == 2:
-                self.a[k] = self.pesos[k].dot(self.z[k - 1].T) + self.sesgos[k]  # ak
-            else:
-                self.a[k]   = self.pesos[k].dot(self.z[k - 1]) + self.sesgos[k]  # ak
-            self.a_d[k] = cross_entropy(self.a[k], self.T)  # h'(ak)
-            self.z[k]   = softmax(self.a[k])  # h(ak)
+        if np.ndim(self.pesos[k]) == 2 and np.ndim(self.z[k - 1]) == 2:
+            self.a[k] = self.pesos[k].dot(self.z[k - 1].T) + self.sesgos[k]  # ak
+        else:
+            self.a[k] = self.pesos[k].dot(self.z[k - 1]) + self.sesgos[k]  # ak
+        self.a_d[k] = self.final_d(self.a[k])  # h'(ak)
+        self.z[k] = self.final(self.a[k])  # h(ak)
 
     def retropropagar(self, T, eta):
         for k in reversed(range(1, len(self.a))):
@@ -181,5 +188,3 @@ class multilayer_perceptron:
             self.z[0] = x
             self.propagar()
             return self.z[-1]
-
-

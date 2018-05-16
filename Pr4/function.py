@@ -1,6 +1,6 @@
 from Red import *
 
-a = multilayer_perceptron(1, 1, [3], activation='sigmoid',  coste='regresion')
+a = multilayer_perceptron(1, 1, [3], activation='sigmoid',  coste='multiclase')
 X = np.mgrid[0:10:1]
 T = np.array(map(lambda x: x*2, X))
 a.train(X, T, 0.05, epochs=10000)

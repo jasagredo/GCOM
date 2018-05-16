@@ -2,7 +2,7 @@ from Red import *
 from sklearn.datasets import fetch_mldata
 import sklearn.metrics as met
 
-a = multilayer_perceptron(784, 10, [16, 16], activation='sigmoid')
+a = multilayer_perceptron(784, 10, [16, 16], activation='softmax', coste='multiclase')
 mnist = fetch_mldata('MNIST original', data_home='~/Documents/Universidad/GCOM/Pr4')
 data = mnist.data
 target = mnist.target
