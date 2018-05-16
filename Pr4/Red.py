@@ -7,7 +7,7 @@ def sigmoid(a):
     if type(a) is not np.ndarray:
         return np.array(1/(1 + np.exp(-a)) if a > 0 else np.exp(a)/(np.exp(a)+1))
     else:
-        return np.array(map(lambda a: 1/(1 + np.exp(-a)) if a > 0 else np.exp(a)/(np.exp(a)+1),a))
+        return np.array(map(sigmoid,a))
 
 
 def sigmoid_d(a):
@@ -115,25 +115,40 @@ class multilayer_perceptron:
 
     def propagar(self):
         for k in range(1, len(self.a) - 1):
-            self.a[k]   = self.pesos[k].dot(self.z[k - 1]) + self.sesgos[k]  # ak
+            if type(self.z[k-1]) is np.ndarray:
+                self.a[k]   = self.pesos[k].dot(self.z[k - 1]) + self.sesgos[k]  # ak
+            else:
+                self.a[k] = np.multiply(self.pesos[k].T, self.z[k - 1]) + self.sesgos[k]  # ak
             self.a_d[k] = self.activation_d(self.a[k])  # h'(ak)
             self.z[k]   = self.activation(self.a[k])  # h(ak)
 
         k = len(self.a) - 1
         if self.coste == 'binaria':
-            self.a[k]   = self.pesos[k].dot(self.z[k - 1]) + self.sesgos[k]  # ak
+            if np.ndim(self.pesos[k]) == 2 and np.ndim(self.z[k-1]) == 2:
+                self.a[k] = self.pesos[k].dot(self.z[k - 1].T) + self.sesgos[k]  # ak
+            else:
+                self.a[k]   = self.pesos[k].dot(self.z[k - 1]) + self.sesgos[k]  # ak
             self.a_d[k] = sigmoid_d(self.a[k])  # h'(ak)
             self.z[k]   = sigmoid(self.a[k])  # h(ak)
         elif self.coste == 'regresion':
-            self.a[k]   = self.pesos[k].dot(self.z[k - 1]) + self.sesgos[k]  # ak
+            if np.ndim(self.pesos[k]) == 2 and np.ndim(self.z[k-1]) == 2:
+                self.a[k] = self.pesos[k].dot(self.z[k - 1].T) + self.sesgos[k]  # ak
+            else:
+                self.a[k]   = self.pesos[k].dot(self.z[k - 1]) + self.sesgos[k]  # ak
             self.a_d[k] = identity_d(self.a[k])  # h'(ak)
             self.z[k]   = identity(self.a[k])  # h(ak)
         elif self.coste == 'binaria multiple':
-            self.a[k]   = self.pesos[k].dot(self.z[k - 1]) + self.sesgos[k]  # ak
+            if np.ndim(self.pesos[k]) == 2 and np.ndim(self.z[k-1]) == 2:
+                self.a[k] = self.pesos[k].dot(self.z[k - 1].T) + self.sesgos[k]  # ak
+            else:
+                self.a[k]   = self.pesos[k].dot(self.z[k - 1]) + self.sesgos[k]  # ak
             self.a_d[k] = sigmoid_d(self.a[k])  # h'(ak)
             self.z[k]   = sigmoid(self.a[k])  # h(ak)
         elif self.coste == 'multiclase':
-            self.a[k]   = self.pesos[k].dot(self.z[k - 1]) + self.sesgos[k]  # ak
+            if np.ndim(self.pesos[k]) == 2 and np.ndim(self.z[k-1]) == 2:
+                self.a[k] = self.pesos[k].dot(self.z[k - 1].T) + self.sesgos[k]  # ak
+            else:
+                self.a[k]   = self.pesos[k].dot(self.z[k - 1]) + self.sesgos[k]  # ak
             self.a_d[k] = cross_entropy(self.a[k], self.T)  # h'(ak)
             self.z[k]   = softmax(self.a[k])  # h(ak)
 
@@ -142,7 +157,10 @@ class multilayer_perceptron:
             if k == len(self.a) - 1:
                 delta = self.z[k] - T
             else:
-                a = np.diag(self.a_d[k])
+                if np.ndim(self.a_d[k]) == 2:
+                    a = np.diag(self.a_d[k][0])
+                else:
+                    a = np.diag(self.a_d[k])
                 if delta.shape[0] == 1:
                     b = self.pesos[k + 1].T * delta
                 else:
