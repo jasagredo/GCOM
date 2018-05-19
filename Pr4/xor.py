@@ -3,7 +3,7 @@ from Red import *
 a = multilayer_perceptron(2, 1, [2], activation='sigmoid', coste='regresion')
 X = np.array([[1,0,1,0], [1,1,0,0]])
 T = np.array([0,1,1,0])
-a.train(X, T, 0.05, epochs=4000)
+a.train(X, T, 0.05, epochs=7000)
 fig, ax = plt.subplots()
 plt.subplots_adjust(bottom=0.2)
 ax.set_xlim(-2, 2)

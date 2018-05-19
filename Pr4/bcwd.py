@@ -26,7 +26,7 @@ def obtenerBCWD():
     return test_t, test_x, train_t, train_x, trainnf
 
 test_t, test_x, train_t, train_x, trainnf = obtenerBCWD()
-a = multilayer_perceptron(30, 2, [8, 8])
+a = multilayer_perceptron(30, 2, [8, 8], activation='relu', coste='binaria')
 a.train(train_x, train_t.T, 0.1, epochs=100)
 
 res = []

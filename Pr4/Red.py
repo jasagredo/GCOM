@@ -141,21 +141,25 @@ class multilayer_perceptron:
                 self.z[0] = elem_x
                 self.propagar()
                 self.retropropagar(elem_t, eta)
+                for e in self.pesos:
+                    for g in e:
+                        for f in g:
+                            assert np.isfinite(f)
                 j += 1
 
     def propagar(self):
         for k in range(1, len(self.a) - 1):
-            if type(self.z[k-1]) is np.ndarray:
-                self.a[k]   = self.pesos[k].dot(self.z[k - 1]) + self.sesgos[k]  # ak
+            if type(self.z[k - 1]) is np.ndarray:
+                self.a[k] = self.pesos[k].dot(self.z[k - 1]) + self.sesgos[k]  # ak
             else:
                 self.a[k] = np.multiply(self.pesos[k].T, self.z[k - 1]) + self.sesgos[k]  # ak
             self.a_d[k] = self.activation_d(self.a[k])  # h'(ak)
-            self.z[k]   = self.activation(self.a[k])  # h(ak)
-
-        if np.ndim(self.pesos[k]) == 2 and np.ndim(self.z[k - 1]) == 2:
+            self.z[k] = self.activation(self.a[k])  # h(ak)
+        k += 1
+        if np.ndim(self.pesos[k]) == 2 and (np.ndim(self.z[k - 1]) == 2 or (np.ndim(self.z[k-1]) == 1 and not (self.z[k-1].shape == (1,)))):
             self.a[k] = self.pesos[k].dot(self.z[k - 1].T) + self.sesgos[k]  # ak
         else:
-            self.a[k] = self.pesos[k].dot(self.z[k - 1]) + self.sesgos[k]  # ak
+            self.a[k] = np.multiply(self.pesos[k].T, self.z[k - 1]) + self.sesgos[k]  # ak
         self.a_d[k] = self.final_d(self.a[k])  # h'(ak)
         self.z[k] = self.final(self.a[k])  # h(ak)
 
@@ -165,7 +169,10 @@ class multilayer_perceptron:
                 delta = self.z[k] - T
             else:
                 if np.ndim(self.a_d[k]) == 2:
-                    a = np.diag(self.a_d[k][0])
+                    if self.a_d[k].shape[1] == 1:
+                        a = np.diag(self.a_d[k].T[0])
+                    else:
+                        a = np.diag(self.a_d[k][0])
                 else:
                     a = np.diag(self.a_d[k])
                 if delta.shape[0] == 1:
@@ -178,7 +185,9 @@ class multilayer_perceptron:
             if delta.shape[0] == 1:
                 self.pesos[k] = self.pesos[k] - eta * delta * self.z[k - 1]
             else:
-                self.pesos[k] = self.pesos[k] - eta * np.outer(delta, self.z[k - 1])
+                m = np.outer(delta, self.z[k - 1])
+               # assert m[0][1] == delta[0] * self.z[k-1][1]
+                self.pesos[k] = self.pesos[k] - eta * m
 
     def classify(self, x):
         """ x: D """

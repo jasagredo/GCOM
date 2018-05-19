@@ -2,7 +2,12 @@ from Red import *
 from sklearn.datasets import fetch_mldata
 import sklearn.metrics as met
 
-a = multilayer_perceptron(784, 10, [16, 16], activation='softmax', coste='multiclase')
+def one_hot(x):
+    can = np.zeros(10)
+    can[int(x)] = 1
+    return np.array(can)
+
+a = multilayer_perceptron(784, 10, [16, 16], activation='relu', coste='multiclase')
 mnist = fetch_mldata('MNIST original', data_home='~/Documents/Universidad/GCOM/Pr4')
 data = mnist.data
 target = mnist.target
@@ -11,7 +16,9 @@ np.random.shuffle(mis_digitos)
 ochenta = int(np.rint(mis_digitos.shape[0] * 0.8))
 train = mis_digitos[:ochenta, :]
 train_x = train[:, :train.shape[1] - 1].T
+train_x /= 255
 train_t = train[:, train.shape[1] - 1:]
+train_t = np.vstack(map(one_hot, train_t))
 test = mis_digitos[ochenta:, :]
 test_x = test[:, :test.shape[1] - 1].T
 test_t = test[:, test.shape[1] - 1:]

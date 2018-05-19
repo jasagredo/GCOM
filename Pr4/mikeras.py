@@ -5,7 +5,7 @@ from keras.layers import Convolution2D, MaxPooling2D
 from keras.utils import np_utils
 from keras.optimizers import rmsprop
 from sklearn.datasets import fetch_mldata
-"""
+
 mnist = fetch_mldata('MNIST original', data_home='~/Documents/Universidad/GCOM/Pr4')
 data = mnist.data
 target = mnist.target
@@ -41,10 +41,10 @@ model.add(Dense(10, activation='softmax'))
 
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy']) # Preparar su funcion de coste y ?optimizador?
 
-model.fit(train_x, train_t, batch_size=32, nb_epoch=3, verbose=1)  # Entrenar la red
+model.fit(train_x, train_t, batch_size=32, nb_epoch=1, verbose=1)  # Entrenar la red
 
 score = model.evaluate(test_x, test_t, verbose=0)
-"""
+print(score)
 from keras.datasets import cifar10
 
 (train_x, train_t), (test_x, test_t) = cifar10.load_data()
@@ -76,9 +76,9 @@ model.add(Dropout(0.5))
 model.add(Dense(10, activation='softmax'))
 
 opt = rmsprop(lr=0.0001, decay=1e-6)
-model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy']) # Preparar su funcion de coste y ?optimizador?
+model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy']) # Preparar su funcion de coste y ?optimizador?
 
-model.fit(train_x, train_t, batch_size=32, nb_epoch=3, verbose=1, validation_data=(test_x, test_t),  shuffle=True)  # Entrenar la red
+model.fit(train_x, train_t, batch_size=32, nb_epoch=1, verbose=1, validation_data=(test_x, test_t),  shuffle=True)  # Entrenar la red
 
 score = model.evaluate(test_x, test_t, verbose=0)
 
