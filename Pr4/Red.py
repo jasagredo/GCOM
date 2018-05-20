@@ -14,12 +14,11 @@ def sigmoid_d(a):
     return np.array(map(lambda a: sigmoid(a) * (1 - sigmoid(a)), a))
 
 
-def tanh(a):
-    return (np.exp(2*a) - 1)/(np.exp(2*a) + 1)
-
+def tanh(x):
+    return np.tanh(x)
 
 def tanh_d(a):
-    return 1 - (tanh(a))**2
+        return 1.0 - np.tanh(a) ** 2
 
 
 def relu(a):

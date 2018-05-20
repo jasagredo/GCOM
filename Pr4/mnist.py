@@ -7,7 +7,7 @@ def one_hot(x):
     can[int(x)] = 1
     return np.array(can)
 
-a = multilayer_perceptron(784, 10, [16, 16], activation='relu', coste='multiclase')
+a = multilayer_perceptron(784, 10, [16, 16], activation='tanh', coste='multiclase')
 mnist = fetch_mldata('MNIST original', data_home='~/Documents/Universidad/GCOM/Pr4')
 data = mnist.data
 target = mnist.target
@@ -21,8 +21,9 @@ train_t = train[:, train.shape[1] - 1:]
 train_t = np.vstack(map(one_hot, train_t))
 test = mis_digitos[ochenta:, :]
 test_x = test[:, :test.shape[1] - 1].T
+train_x /= 255
 test_t = test[:, test.shape[1] - 1:]
-a.train(train_x, train_t, 0.1)
+a.train(train_x, train_t, 0.0001)
 
 res = []
 for elem in test_x.T:
