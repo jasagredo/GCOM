@@ -77,7 +77,7 @@ class Lda(object):
                 s_w += np.dot(x_i_m_i, x_i_m_i.T)
 
             # Generacion de s_b
-            m_i_m = mean.T - total_mean[:, np.newaxis]
+            m_i_m = (mean.T - total_mean[:, np.newaxis]) * self.n
             s_b = np.dot(m_i_m, m_i_m.T)
 
             # Obtencion de los autovectores de (sw)^-1 sb
@@ -90,7 +90,7 @@ class Lda(object):
             for i in range(0, t.shape[0]):
                 elems = self.w.T.dot(X[:, t[i] == 1])
                 x_i_m_i = elems - self.w.T.dot(mean[i])
-                self.sigma[i] = np.dot(x_i_m_i, x_i_m_i.T)
+                self.sigma[i] = np.dot(x_i_m_i, x_i_m_i.T) / self.n[i]
 
         else:
             # Generacion del vector de medias
